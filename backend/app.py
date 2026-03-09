@@ -86,5 +86,25 @@ def add_crop():
 
     return {"message": "Crop added successfully"}
 
+@app.route("/crops", methods=["GET"])
+def get_crops():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    query = """
+    SELECT crops.crop_id, crops.crop_name, crops.quantity, crops.price, crops.location,
+           farmers.name AS farmer_name
+    FROM crops
+    JOIN farmers ON crops.farmer_id = farmers.farmer_id
+    """
+
+    cursor.execute(query)
+    crops = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return {"crops": crops}
+
 if __name__ == "__main__":
     app.run(debug=True)
