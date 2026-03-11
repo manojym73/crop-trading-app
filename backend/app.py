@@ -1,65 +1,150 @@
-# from flask import Flask
-
-# app = Flask(__name__)
-
-# @app.route("/")
-# def home():
-#     return "Crop Trading API Running"
-
-# if __name__ == "__main__":
-#     app.run(debug=True)
-# from flask import Flask
-# from database import get_connection
-
-# app = Flask(__name__)
-
-# @app.route("/")
-# def home():
-#     conn = get_connection()
-#     cursor = conn.cursor()
-#     cursor.execute("SHOW TABLES")
-#     tables = cursor.fetchall()
-
-#     return f"Database connected! Tables: {tables}"
-
-# if __name__ == "__main__":
-    # app.run(debug=True)
-
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from database import get_connection
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/")
 def home():
     return "Crop Trading API Running"
 
 
+# ---------------------------
+# Register Farmer
+# ---------------------------
 @app.route("/register_farmer", methods=["POST"])
 def register_farmer():
+
+    try:
+        data = request.json
+
+        email = data["email"]
+        name = data["name"]
+        phone = data["phone"]
+        location = data["location"]
+        password = data["password"]
+
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Check if email already exists
+        cursor.execute(
+            "SELECT * FROM farmers WHERE email=%s",
+            (email,)
+        )
+
+        existing_user = cursor.fetchone()
+
+        if existing_user:
+            return jsonify({"message": "Email already registered"}), 400
+
+        # Insert new farmer
+        query = """
+        INSERT INTO farmers (email, name, phone, location, password)
+        VALUES (%s,%s,%s,%s,%s)
+        """
+
+        cursor.execute(query,(email,name,phone,location,password))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message":"Farmer registered successfully"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Salesman Register API
+@app.route("/register_salesman", methods=["POST"])
+def register_salesman():
+
+    try:
+        data = request.json
+
+        email = data["email"]
+        name = data["name"]
+        phone = data["phone"]
+        company = data["company"]
+        password = data["password"]
+
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # check existing email
+        cursor.execute(
+            "SELECT * FROM salesmen WHERE email=%s",
+            (email,)
+        )
+
+        existing_user = cursor.fetchone()
+
+        if existing_user:
+            return jsonify({"message":"Email already registered"}),400
+
+        query = """
+        INSERT INTO salesmen (email,name,phone,company,password)
+        VALUES (%s,%s,%s,%s,%s)
+        """
+
+        cursor.execute(query,(email,name,phone,company,password))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message":"Salesman registered successfully"})
+
+    except Exception as e:
+        return jsonify({"error":str(e)}),500
+    
+# Login API (Both Farmer & Salesman)
+@app.route("/login", methods=["POST"])
+def login():
+
     data = request.json
 
-    name = data["name"]
-    phone = data["phone"]
-    location = data["location"]
+    email = data["email"]
     password = data["password"]
 
     conn = get_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
 
-    query = """
-    INSERT INTO farmers (name, phone, location, password)
-    VALUES (%s, %s, %s, %s)
-    """
+    # check farmer
+    cursor.execute(
+        "SELECT * FROM farmers WHERE email=%s AND password=%s",
+        (email,password)
+    )
 
-    cursor.execute(query, (name, phone, location, password))
-    conn.commit()
+    farmer = cursor.fetchone()
 
-    cursor.close()
-    conn.close()
+    if farmer:
+        return jsonify({
+            "role":"farmer",
+            "user":farmer
+        })
 
-    return jsonify({"message": "Farmer registered successfully"})
+    # check salesman
+    cursor.execute(
+        "SELECT * FROM salesmen WHERE email=%s AND password=%s",
+        (email,password)
+    )
 
+    salesman = cursor.fetchone()
+
+    if salesman:
+        return jsonify({
+            "role":"salesman",
+            "user":salesman
+        })
+
+    return jsonify({"message":"Invalid email or password"}),401
+
+# ---------------------------
+# Add Crop
+# ---------------------------
 @app.route("/add_crop", methods=["POST"])
 def add_crop():
     data = request.json
@@ -84,16 +169,26 @@ def add_crop():
     cursor.close()
     conn.close()
 
-    return {"message": "Crop added successfully"}
+    return jsonify({"message": "Crop added successfully"})
 
+
+# ---------------------------
+# Get All Crops
+# ---------------------------
 @app.route("/crops", methods=["GET"])
 def get_crops():
+
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
     query = """
-    SELECT crops.crop_id, crops.crop_name, crops.quantity, crops.price, crops.location,
-           farmers.name AS farmer_name
+    SELECT 
+        crops.crop_id,
+        crops.crop_name,
+        crops.quantity,
+        crops.price,
+        crops.location,
+        farmers.name AS farmer_name
     FROM crops
     JOIN farmers ON crops.farmer_id = farmers.farmer_id
     """
@@ -104,7 +199,72 @@ def get_crops():
     cursor.close()
     conn.close()
 
-    return {"crops": crops}
+    return jsonify({"crops": crops})
+
+
+# ---------------------------
+# Place Order
+# ---------------------------
+@app.route("/place_order", methods=["POST"])
+def place_order():
+
+    data = request.json
+
+    salesman_id = data["salesman_id"]
+    crop_id = data["crop_id"]
+    quantity = data["quantity"]
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+    INSERT INTO orders (salesman_id, crop_id, quantity, status)
+    VALUES (%s, %s, %s, %s)
+    """
+
+    cursor.execute(query, (salesman_id, crop_id, quantity, "Pending"))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({"message": "Order placed successfully"})
+
+
+# ---------------------------
+# View Orders
+# ---------------------------
+@app.route("/orders", methods=["GET"])
+def get_orders():
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    query = """
+    SELECT 
+        orders.order_id,
+        farmers.name AS farmer_name,
+        salesmen.name AS salesman_name,
+        crops.crop_name,
+        orders.quantity,
+        orders.status,
+        orders.order_date
+    FROM orders
+    JOIN crops ON orders.crop_id = crops.crop_id
+    JOIN farmers ON crops.farmer_id = farmers.farmer_id
+    JOIN salesmen ON orders.salesman_id = salesmen.salesman_id
+    """
+
+    cursor.execute(query)
+    orders = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({"orders": orders})
+
+    
+
 
 if __name__ == "__main__":
     app.run(debug=True)
