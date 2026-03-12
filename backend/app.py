@@ -1,14 +1,22 @@
-from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask import Flask, request, jsonify, send_from_directory
 from database import get_connection
-from flask_cors import CORS
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 CORS(app)
 
+UPLOAD_FOLDER = "uploads"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
 @app.route("/")
 def home():
     return "Crop Trading API Running"
+# Serve uploaded images
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 # ---------------------------
@@ -135,41 +143,59 @@ def login():
     salesman = cursor.fetchone()
 
     if salesman:
+    
         return jsonify({
             "role":"salesman",
             "user":salesman
         })
-
     return jsonify({"message":"Invalid email or password"}),401
+
+
 
 # ---------------------------
 # Add Crop
 # ---------------------------
 @app.route("/add_crop", methods=["POST"])
 def add_crop():
-    data = request.json
 
-    farmer_id = data["farmer_id"]
-    crop_name = data["crop_name"]
-    quantity = data["quantity"]
-    price = data["price"]
-    location = data["location"]
+    try:
 
-    conn = get_connection()
-    cursor = conn.cursor()
+        farmer_id = request.form["farmer_id"]
+        crop_name = request.form["crop_name"]
+        quantity = request.form["quantity"]
+        price = request.form["price"]
+        location = request.form["location"]
 
-    query = """
-    INSERT INTO crops (farmer_id, crop_name, quantity, price, location)
-    VALUES (%s, %s, %s, %s, %s)
-    """
+        image = request.files["image"]
 
-    cursor.execute(query, (farmer_id, crop_name, quantity, price, location))
-    conn.commit()
+        filename = secure_filename(image.filename)
 
-    cursor.close()
-    conn.close()
+        image_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
-    return jsonify({"message": "Crop added successfully"})
+        image.save(image_path)
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        query = """
+        INSERT INTO crops (farmer_id, crop_name, quantity, price, location, image)
+        VALUES (%s,%s,%s,%s,%s,%s)
+        """
+
+        cursor.execute(query,(farmer_id,crop_name,quantity,price,location,filename))
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message":"Crop added successfully"})
+
+    except Exception as e:
+
+        print("ERROR:", e)
+
+        return jsonify({"error": str(e)})
 
 
 # ---------------------------
@@ -188,6 +214,7 @@ def get_crops():
         crops.quantity,
         crops.price,
         crops.location,
+        crops.image,
         farmers.name AS farmer_name
     FROM crops
     JOIN farmers ON crops.farmer_id = farmers.farmer_id
@@ -273,21 +300,38 @@ def update_order_status():
     status = data["status"]
 
     conn = get_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
 
-    query = """
-    UPDATE orders
-    SET status=%s
-    WHERE order_id=%s
-    """
+    # update order status
+    cursor.execute(
+        "UPDATE orders SET status=%s WHERE order_id=%s",
+        (status, order_id)
+    )
 
-    cursor.execute(query, (status, order_id))
+    # only reduce quantity if approved
+    if status == "Approved":
+
+        cursor.execute(
+            "SELECT crop_id, quantity FROM orders WHERE order_id=%s",
+            (order_id,)
+        )
+
+        order = cursor.fetchone()
+
+        crop_id = order["crop_id"]
+        order_qty = order["quantity"]
+
+        cursor.execute(
+            "UPDATE crops SET quantity = quantity - %s WHERE crop_id=%s",
+            (order_qty, crop_id)
+        )
+
     conn.commit()
 
     cursor.close()
     conn.close()
 
-    return {"message": "Order status updated"}
+    return {"message": "Order updated successfully"}
 
 
 if __name__ == "__main__":

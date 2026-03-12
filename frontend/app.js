@@ -1,87 +1,75 @@
 const API = "http://127.0.0.1:5000";
 
-
+// add crop function
 function addCrop() {
 
-    let farmer_id = localStorage.getItem("farmer_id");
+    let farmer_id = localStorage.getItem("farmer_id")
 
-    let crop_name = document.getElementById("crop_name").value;
-    let quantity = document.getElementById("quantity").value;
-    let price = document.getElementById("price").value;
-    let location = document.getElementById("location").value;
+    let formData = new FormData()
+
+    formData.append("farmer_id", farmer_id)
+    formData.append("crop_name", document.getElementById("crop_name").value)
+    formData.append("quantity", document.getElementById("quantity").value)
+    formData.append("price", document.getElementById("price").value)
+    formData.append("location", document.getElementById("location").value)
+    formData.append("image", document.getElementById("image").files[0])
 
     fetch("http://127.0.0.1:5000/add_crop", {
 
         method: "POST",
-
-        headers: {
-            "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-
-            farmer_id: farmer_id,
-            crop_name: crop_name,
-            quantity: quantity,
-            price: price,
-            location: location
-
-        })
+        body: formData
 
     })
-
         .then(res => res.json())
-        .then(data => {
-
-            alert(data.message);
-
-        });
+        .then(data => alert(data.message))
 
 }
 
-
+// load crops function
 function loadCrops() {
 
-    fetch(API + "/crops")
+fetch("http://127.0.0.1:5000/crops")
 
-        .then(res => res.json())
+.then(response => response.json())
 
-        .then(data => {
+.then(data => {
 
-            let html = ""
+let html = "";
 
-            data.crops.forEach(crop => {
+data.crops.forEach(crop => {
 
-                html += `
+html += `
+<div class="card">
 
-<div class="crop-card">
+<img src="http://127.0.0.1:5000/uploads/${crop.image}"
+style="width:200px;height:150px;object-fit:cover;margin-bottom:10px;">
 
 <h3>${crop.crop_name}</h3>
 
-<p>Farmer: ${crop.farmer_name}</p>
+<p><b>Farmer:</b> ${crop.farmer_name}</p>
 
-<p>Price: ₹${crop.price}</p>
+<p><b>Available Quantity:</b> ${crop.quantity}</p>
 
-<p>Quantity: ${crop.quantity}</p>
+<p><b>Price:</b> ₹${crop.price}</p>
 
-<input id="qty-${crop.crop_id}" placeholder="Quantity">
+<p><b>Location:</b> ${crop.location}</p>
 
-<button onclick="placeOrder(${crop.crop_id})">Buy</button>
+<input id="qty-${crop.crop_id}" placeholder="Enter quantity">
+
+<button onclick="placeOrder(${crop.crop_id})">Buy Crop</button>
 
 </div>
+`;
 
-`
+});
 
-            })
+document.getElementById("crop-list").innerHTML = html;
 
-            document.getElementById("crop-list").innerHTML = html
-
-        })
+});
 
 }
 
-
-
+// place order function
 function placeOrder(crop_id) {
 
     let qty = document.getElementById(`qty-${crop_id}`).value
@@ -115,7 +103,7 @@ function placeOrder(crop_id) {
 }
 
 
-
+// load orders function
 function loadOrders() {
 
     fetch(API + "/orders")
@@ -155,46 +143,46 @@ function loadOrders() {
 
 }
 
-// load crops and orders on page load
-function loadCrops() {
+// // load crops and orders on page load
+// function loadCrops() {
 
-    fetch("http://127.0.0.1:5000/crops")
+//     fetch("http://127.0.0.1:5000/crops")
 
-        .then(response => response.json())
+//         .then(response => response.json())
 
-        .then(data => {
+//         .then(data => {
 
-            let html = "";
+//             let html = "";
 
-            data.crops.forEach(crop => {
+//             data.crops.forEach(crop => {
 
-                html += `
-<div class="card">
+//                 html += `
+// <div class="card">
 
-<h3>${crop.crop_name}</h3>
+// <h3>${crop.crop_name}</h3>
 
-<p><b>Farmer:</b> ${crop.farmer_name}</p>
+// <p><b>Farmer:</b> ${crop.farmer_name}</p>
 
-<p><b>Available Quantity:</b> ${crop.quantity}</p>
+// <p><b>Available Quantity:</b> ${crop.quantity}</p>
 
-<p><b>Price:</b> ₹${crop.price}</p>
+// <p><b>Price:</b> ₹${crop.price}</p>
 
-<p><b>Location:</b> ${crop.location}</p>
+// <p><b>Location:</b> ${crop.location}</p>
 
-<input id="qty-${crop.crop_id}" placeholder="Enter quantity">
+// <input id="qty-${crop.crop_id}" placeholder="Enter quantity">
 
-<button onclick="placeOrder(${crop.crop_id})">Buy Crop</button>
+// <button onclick="placeOrder(${crop.crop_id})">Buy Crop</button>
 
-</div>
-`;
+// </div>
+// `;
 
-            });
+//             });
 
-            document.getElementById("crop-list").innerHTML = html;
+//             document.getElementById("crop-list").innerHTML = html;
 
-        });
+//         });
 
-}
+// }
 
 // place order function
 function placeOrder(crop_id) {
@@ -233,6 +221,7 @@ function placeOrder(crop_id) {
 
 }
 
+// load orders function
 function loadOrders() {
 
     fetch("http://127.0.0.1:5000/orders")
