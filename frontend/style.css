@@ -1,45 +1,63 @@
 body{
-font-family: Arial;
+font-family: Arial, sans-serif;
 margin:0;
 background:#f4f6f9;
 }
 
-.navbar{
+.sidebar{
+width:220px;
+height:100vh;
 background:#2c7a4b;
+position:fixed;
 color:white;
-padding:15px;
-display:flex;
-justify-content:space-between;
+padding:20px;
 }
 
-.navbar a{
+.sidebar h2{
+margin-bottom:30px;
+}
+
+.sidebar a{
+display:block;
 color:white;
-margin-left:20px;
+padding:10px;
 text-decoration:none;
+margin-bottom:10px;
+border-radius:5px;
 }
 
-.container{
+.sidebar a:hover{
+background:#1e5c35;
+}
+
+.content{
+margin-left:240px;
 padding:30px;
 }
 
-input{
-display:block;
-margin:10px 0;
-padding:10px;
-width:300px;
+.card{
+background:white;
+padding:20px;
+margin-bottom:20px;
+border-radius:10px;
+box-shadow:0 2px 8px rgba(0,0,0,0.1);
 }
 
 button{
-padding:10px 20px;
 background:#2c7a4b;
 color:white;
 border:none;
+padding:10px 20px;
+border-radius:5px;
 cursor:pointer;
 }
 
-.crop-card{
-border:1px solid #ccc;
-padding:15px;
-margin:10px;
-background:white;
+button:hover{
+background:#1e5c35;
+}
+
+input{
+padding:10px;
+margin:5px 0;
+width:250px;
 }

@@ -168,19 +168,21 @@ function loadCrops() {
             data.crops.forEach(crop => {
 
                 html += `
-<div class="crop-card">
+<div class="card">
 
 <h3>${crop.crop_name}</h3>
 
-<p>Farmer: ${crop.farmer_name}</p>
+<p><b>Farmer:</b> ${crop.farmer_name}</p>
 
-<p>Quantity: ${crop.quantity}</p>
+<p><b>Available Quantity:</b> ${crop.quantity}</p>
 
-<p>Price: ₹${crop.price}</p>
+<p><b>Price:</b> ₹${crop.price}</p>
 
-<input id="qty-${crop.crop_id}" placeholder="Quantity">
+<p><b>Location:</b> ${crop.location}</p>
 
-<button onclick="placeOrder(${crop.crop_id})">Buy</button>
+<input id="qty-${crop.crop_id}" placeholder="Enter quantity">
+
+<button onclick="placeOrder(${crop.crop_id})">Buy Crop</button>
 
 </div>
 `;
@@ -243,19 +245,18 @@ function loadOrders() {
             data.orders.forEach(order => {
 
                 html += `
-<div class="crop-card">
+
+<div class="card">
 
 <h3>${order.crop_name}</h3>
 
-<p>Farmer: ${order.farmer_name}</p>
+<p><b>Farmer:</b> ${order.farmer_name}</p>
 
-<p>Salesman: ${order.salesman_name}</p>
+<p><b>Salesman:</b> ${order.salesman_name}</p>
 
-<p>Quantity: ${order.quantity}</p>
+<p><b>Quantity:</b> ${order.quantity}</p>
 
-<p>Status: ${order.status}</p>
-
-<p>Date: ${order.order_date}</p>
+<p><b>Status:</b> ${order.status}</p>
 
 </div>
 `;
@@ -265,5 +266,14 @@ function loadOrders() {
             document.getElementById("orders-list").innerHTML = html;
 
         });
+
+}
+
+// logout function
+function logout() {
+
+    localStorage.clear();
+
+    window.location = "login.html";
 
 }
