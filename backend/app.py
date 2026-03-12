@@ -263,7 +263,31 @@ def get_orders():
 
     return jsonify({"orders": orders})
 
-    
+# API to Update Order Status
+@app.route("/update_order_status", methods=["POST"])
+def update_order_status():
+
+    data = request.json
+
+    order_id = data["order_id"]
+    status = data["status"]
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+    UPDATE orders
+    SET status=%s
+    WHERE order_id=%s
+    """
+
+    cursor.execute(query, (status, order_id))
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return {"message": "Order status updated"}
 
 
 if __name__ == "__main__":
