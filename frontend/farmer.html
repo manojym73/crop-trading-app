@@ -4,11 +4,12 @@
 <head>
 
     <title>Farmer Dashboard</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 
-<body onload="loadStats()">
+<body onload="loadStats(); loadCropChart();">
 
     <nav class="navbar">
         <h2>Farmer Dashboard</h2>
@@ -28,36 +29,48 @@
         <button onclick="addCrop()">Add Crop</button>
 
     </div>
+
+    <!-- Dashboard -->
     <h2>Dashboard</h2>
 
     <div class="stats">
 
-        <div class="card">
-            <h3 id="totalCrops">0</h3>
+        <div class="stat-card">
+            <h3 id="totalCrops"></h3>
             <p>Total Crops</p>
         </div>
 
-        <div class="card">
-            <h3 id="totalOrders">0</h3>
+        <div class="stat-card">
+            <h3 id="totalOrders"></h3>
             <p>Total Orders</p>
         </div>
 
-        <div class="card">
-            <h3 id="totalFarmers">0</h3>
+        <div class="stat-card">
+            <h3 id="totalFarmers"></h3>
             <p>Total Farmers</p>
         </div>
 
-        <div class="card">
-            <h3 id="totalSalesmen">0</h3>
+        <div class="stat-card">
+            <h3 id="totalSalesmen"></h3>
             <p>Total Salesmen</p>
         </div>
 
     </div>
 
+    <!-- Crop Statistics -->
+    <h2>Crop Statistics</h2>
+
+    <div class="card">
+        <canvas id="cropChart" width="600" height="300"></canvas>
+    </div>
+
     <!-- <script src="app.js"></script> -->
+    <script src="js/config.js"></script>
     <script src="js/crops.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/login.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </body>
 

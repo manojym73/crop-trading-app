@@ -1,18 +1,16 @@
-const API = "http://127.0.0.1:5000";
+function loadOrders() {
 
-function loadOrders(){
+    fetch(API + "/orders")
 
-fetch(API + "/orders")
+        .then(res => res.json())
 
-.then(res=>res.json())
+        .then(data => {
 
-.then(data=>{
+            let html = ""
 
-let html=""
+            data.orders.forEach(order => {
 
-data.orders.forEach(order=>{
-
-html+=`
+                html += `
 <div class="card">
 
 <h3>${order.crop_name}</h3>
@@ -31,37 +29,37 @@ html+=`
 
 </div>
 `
-})
+            })
 
-document.getElementById("orders-list").innerHTML=html
+            document.getElementById("orders-list").innerHTML = html
 
-})
+        })
 
 }
 
 
-function updateOrder(order_id,status){
+function updateOrder(order_id, status) {
 
-fetch(API + "/update_order_status",{
+    fetch(API + "/update_order_status", {
 
-method:"POST",
+        method: "POST",
 
-headers:{
-"Content-Type":"application/json"
-},
+        headers: {
+            "Content-Type": "application/json"
+        },
 
-body:JSON.stringify({
-order_id:order_id,
-status:status
-})
+        body: JSON.stringify({
+            order_id: order_id,
+            status: status
+        })
 
-})
+    })
 
-.then(res=>res.json())
+        .then(res => res.json())
 
-.then(data=>{
-alert(data.message)
-loadOrders()
-})
+        .then(data => {
+            alert(data.message)
+            loadOrders()
+        })
 
 }
