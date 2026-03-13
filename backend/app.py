@@ -333,6 +333,34 @@ def update_order_status():
 
     return {"message": "Order updated successfully"}
 
+# API to get stats for dashboard
+@app.route("/stats", methods=["GET"])
+def get_stats():
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT COUNT(*) AS total_crops FROM crops")
+    crops = cursor.fetchone()
+
+    cursor.execute("SELECT COUNT(*) AS total_orders FROM orders")
+    orders = cursor.fetchone()
+
+    cursor.execute("SELECT COUNT(*) AS total_farmers FROM farmers")
+    farmers = cursor.fetchone()
+
+    cursor.execute("SELECT COUNT(*) AS total_salesmen FROM salesmen")
+    salesmen = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return {
+        "total_crops": crops["total_crops"],
+        "total_orders": orders["total_orders"],
+        "total_farmers": farmers["total_farmers"],
+        "total_salesmen": salesmen["total_salesmen"]
+    }
 
 if __name__ == "__main__":
     app.run(debug=True)

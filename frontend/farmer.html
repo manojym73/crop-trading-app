@@ -3,33 +3,61 @@
 
 <head>
 
-<title>Farmer Dashboard</title>
-<link rel="stylesheet" href="css/style.css">
+    <title>Farmer Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
 
 </head>
 
-<body>
+<body onload="loadStats()">
 
-<nav class="navbar">
-<h2>Farmer Dashboard</h2>
-<a href="index.html">Home</a>
-<a href="#" onclick="logout()">Logout</a>
-</nav>
+    <nav class="navbar">
+        <h2>Farmer Dashboard</h2>
+        <a href="index.html">Home</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
 
-<div class="container">
+    <div class="container">
 
-<h2>Add Crop</h2>
+        <h2>Add Crop</h2>
 
-<input id="crop_name" placeholder="Crop Name">
-<input id="quantity" placeholder="Quantity">
-<input id="price" placeholder="Price">
-<input id="location" placeholder="Location">
-<input type="file" id="image">
-<button onclick="addCrop()">Add Crop</button>
+        <input id="crop_name" placeholder="Crop Name">
+        <input id="quantity" placeholder="Quantity">
+        <input id="price" placeholder="Price">
+        <input id="location" placeholder="Location">
+        <input type="file" id="image">
+        <button onclick="addCrop()">Add Crop</button>
 
-</div>
+    </div>
+    <h2>Dashboard</h2>
 
-<script src="app.js"></script>
+    <div class="stats">
+
+        <div class="card">
+            <h3 id="totalCrops">0</h3>
+            <p>Total Crops</p>
+        </div>
+
+        <div class="card">
+            <h3 id="totalOrders">0</h3>
+            <p>Total Orders</p>
+        </div>
+
+        <div class="card">
+            <h3 id="totalFarmers">0</h3>
+            <p>Total Farmers</p>
+        </div>
+
+        <div class="card">
+            <h3 id="totalSalesmen">0</h3>
+            <p>Total Salesmen</p>
+        </div>
+
+    </div>
+
+    <!-- <script src="app.js"></script> -->
+    <script src="js/crops.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/login.js"></script>
 
 </body>
 
