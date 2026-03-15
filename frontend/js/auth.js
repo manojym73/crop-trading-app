@@ -1,7 +1,7 @@
-function logout(){
+function logout() {
 
-localStorage.clear()
+    localStorage.clear()
 
-window.location="login.html"
+    window.location = "login.html"
 
 }
