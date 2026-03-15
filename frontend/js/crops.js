@@ -93,8 +93,11 @@ function placeOrder(crop_id) {
 
         .then(res => res.json())
         .then(data => {
-            alert(data.message)
+
+            showNotification("New Order Placed")
+
             loadCrops()
+
         })
 
 }
