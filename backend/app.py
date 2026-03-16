@@ -109,47 +109,6 @@ def register_salesman():
         return jsonify({"error":str(e)}),500
     
 # Login API (Both Farmer & Salesman)
-# @app.route("/login", methods=["POST"])
-# def login():
-
-#     data = request.json
-
-#     email = data["email"]
-#     password = data["password"]
-
-#     conn = get_connection()
-#     cursor = conn.cursor(dictionary=True)
-
-#     # check farmer
-#     cursor.execute(
-#         "SELECT * FROM farmers WHERE email=%s AND password=%s",
-#         (email,password)
-#     )
-
-#     farmer = cursor.fetchone()
-
-#     if farmer:
-#         return jsonify({
-#             "role":"farmer",
-#             "user":farmer
-#         })
-
-#     # check salesman
-#     cursor.execute(
-#         "SELECT * FROM salesmen WHERE email=%s AND password=%s",
-#         (email,password)
-#     )
-
-#     salesman = cursor.fetchone()
-
-#     if salesman:
-    
-#         return jsonify({
-#             "role":"salesman",
-#             "user":salesman
-#         })
-#     return jsonify({"message":"Invalid email or password"}),401
-
 @app.route("/login", methods=["POST"])
 def login():
 
@@ -327,6 +286,36 @@ def get_orders():
     conn.close()
 
     return jsonify({"orders": orders})
+
+# orders for specific salesman
+@app.route("/salesman_orders/<int:salesman_id>", methods=["GET"])
+def salesman_orders(salesman_id):
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    query = """
+    SELECT 
+        orders.order_id,
+        crops.crop_name,
+        farmers.name AS farmer_name,
+        orders.quantity,
+        orders.status,
+        orders.order_date
+    FROM orders
+    JOIN crops ON orders.crop_id = crops.crop_id
+    JOIN farmers ON crops.farmer_id = farmers.farmer_id
+    WHERE orders.salesman_id = %s
+    """
+
+    cursor.execute(query,(salesman_id,))
+
+    orders = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return {"orders":orders}
 
 # API to Update Order Status
 @app.route("/update_order_status", methods=["POST"])

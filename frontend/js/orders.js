@@ -63,3 +63,40 @@ function updateOrder(order_id, status) {
         })
 
 }
+
+// order for specific salesman
+function loadSalesmanOrders(){
+
+let salesman_id = localStorage.getItem("salesman_id")
+
+fetch(API + "/salesman_orders/" + salesman_id)
+
+.then(res=>res.json())
+
+.then(data=>{
+
+let html=""
+
+data.orders.forEach(order=>{
+
+html+=`
+<div class="card">
+
+<h3>${order.crop_name}</h3>
+
+<p><b>Farmer:</b> ${order.farmer_name}</p>
+
+<p><b>Quantity:</b> ${order.quantity}</p>
+
+<p><b>Status:</b> ${order.status}</p>
+
+</div>
+`
+
+})
+
+document.getElementById("orders-list").innerHTML=html
+
+})
+
+}
