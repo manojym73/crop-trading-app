@@ -109,46 +109,84 @@ def register_salesman():
         return jsonify({"error":str(e)}),500
     
 # Login API (Both Farmer & Salesman)
+# @app.route("/login", methods=["POST"])
+# def login():
+
+#     data = request.json
+
+#     email = data["email"]
+#     password = data["password"]
+
+#     conn = get_connection()
+#     cursor = conn.cursor(dictionary=True)
+
+#     # check farmer
+#     cursor.execute(
+#         "SELECT * FROM farmers WHERE email=%s AND password=%s",
+#         (email,password)
+#     )
+
+#     farmer = cursor.fetchone()
+
+#     if farmer:
+#         return jsonify({
+#             "role":"farmer",
+#             "user":farmer
+#         })
+
+#     # check salesman
+#     cursor.execute(
+#         "SELECT * FROM salesmen WHERE email=%s AND password=%s",
+#         (email,password)
+#     )
+
+#     salesman = cursor.fetchone()
+
+#     if salesman:
+    
+#         return jsonify({
+#             "role":"salesman",
+#             "user":salesman
+#         })
+#     return jsonify({"message":"Invalid email or password"}),401
+
 @app.route("/login", methods=["POST"])
 def login():
 
     data = request.json
 
+    role = data["role"]
     email = data["email"]
     password = data["password"]
 
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # check farmer
-    cursor.execute(
+    if role == "farmer":
+
+        cursor.execute(
         "SELECT * FROM farmers WHERE email=%s AND password=%s",
         (email,password)
-    )
+        )
 
-    farmer = cursor.fetchone()
+        user = cursor.fetchone()
 
-    if farmer:
-        return jsonify({
-            "role":"farmer",
-            "user":farmer
-        })
+        if user:
+            return {"role":"farmer","id":user["farmer_id"]}
 
-    # check salesman
-    cursor.execute(
+    elif role == "salesman":
+
+        cursor.execute(
         "SELECT * FROM salesmen WHERE email=%s AND password=%s",
         (email,password)
-    )
+        )
 
-    salesman = cursor.fetchone()
+        user = cursor.fetchone()
 
-    if salesman:
-    
-        return jsonify({
-            "role":"salesman",
-            "user":salesman
-        })
-    return jsonify({"message":"Invalid email or password"}),401
+        if user:
+            return {"role":"salesman","id":user["salesman_id"]}
+
+    return {"message":"Invalid login"}
 
 
 

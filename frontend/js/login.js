@@ -1,46 +1,98 @@
-function login() {
+// function login() {
 
-    let email = document.getElementById("email").value;
-    let password = document.getElementById("password").value;
+//     let email = document.getElementById("email").value;
+//     let password = document.getElementById("password").value;
 
-    fetch("http://127.0.0.1:5000/login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            email: email,
-            password: password
-        })
-    })
+//     fetch("http://127.0.0.1:5000/login", {
+//         method: "POST",
+//         headers: {
+//             "Content-Type": "application/json"
+//         },
+//         body: JSON.stringify({
+//             email: email,
+//             password: password
+//         })
+//     })
 
-        .then(response => response.json())
-        .then(data => {
+//         .then(response => response.json())
+//         .then(data => {
 
-            console.log(data);
+//             console.log(data);
 
-            if (data.role === "farmer") {
+//             if (data.role === "farmer") {
 
-                localStorage.setItem("user_role", "farmer");
-                localStorage.setItem("farmer_id", data.user.farmer_id);
+//                 localStorage.setItem("user_role", "farmer");
+//                 localStorage.setItem("farmer_id", data.user.farmer_id);
 
-                window.location = "farmer.html";
+//                 window.location = "farmer.html";
 
-            }
+//             }
 
-            else if (data.role === "salesman") {
+//             else if (data.role === "salesman") {
 
-                localStorage.setItem("user_role", "salesman");
-                localStorage.setItem("salesman_id", data.user.salesman_id);
+//                 localStorage.setItem("user_role", "salesman");
+//                 localStorage.setItem("salesman_id", data.user.salesman_id);
 
-                window.location = "salesman.html";
+//                 window.location = "salesman.html";
 
-            }
+//             }
 
-            else {
-                alert("Invalid login");
-            }
+//             else {
+//                 alert("Invalid login");
+//             }
 
-        });
+//         });
+
+// }
+
+function login(){
+
+let role = document.getElementById("role").value
+let email = document.getElementById("email").value
+let password = document.getElementById("password").value
+
+fetch(API + "/login",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+role:role,
+email:email,
+password:password
+})
+
+})
+
+.then(res=>res.json())
+
+.then(data=>{
+
+if(data.role==="farmer"){
+
+localStorage.setItem("farmer_id",data.id)
+
+window.location="farmer.html"
+
+}
+
+else if(data.role==="salesman"){
+
+localStorage.setItem("salesman_id",data.id)
+
+window.location="salesman.html"
+
+}
+
+else{
+
+alert("Invalid login")
+
+}
+
+})
 
 }

@@ -10,26 +10,43 @@
 
 <body>
 
-    <div class="container">
+    <!-- <div class="container">
 
         <h2>Login</h2>
 
         <input id="email" placeholder="Enter Gmail">
         <input id="password" type="password" placeholder="Password">
-
         <button onclick="login()">Login</button>
-
-        <script src="js/login.js"></script>
-        <script src="js/auth.js"></script>
-
         <p id="message"></p>
 
-    </div>
+    </div> -->
+    <h2>Login</h2>
+
+    <label>Select Login Type</label>
+    <br><br>
+
+    <select id="role">
+        <option value="farmer">Farmer</option>
+        <option value="salesman">Salesman</option>
+    </select>
+
+    <br><br>
+
+    <input type="email" id="email" placeholder="Email">
+
+    <br><br>
+
+    <input type="password" id="password" placeholder="Password">
+
+    <br><br>
+
+    <button onclick="login()">Login</button>
 
     <!-- <script src="js/login.js"></script> -->
     <script src="js/config.js"></script>
-    <script src="js/crops.js"></script>
+    <script src="js/login.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/crops.js"></script>
 
 </body>
 
