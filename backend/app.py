@@ -25,88 +25,30 @@ def uploaded_file(filename):
 @app.route("/register_farmer", methods=["POST"])
 def register_farmer():
 
-    try:
-        data = request.json
+    data = request.json
 
-        email = data["email"]
-        name = data["name"]
-        phone = data["phone"]
-        location = data["location"]
-        password = data["password"]
+    name = data["name"]
+    email = data["email"]
+    password = data["password"]
 
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
+    conn = get_connection()
+    cursor = conn.cursor()
 
-        # Check if email already exists
-        cursor.execute(
-            "SELECT * FROM farmers WHERE email=%s",
-            (email,)
-        )
+    query = """
+    INSERT INTO farmers (name, email, password)
+    VALUES (%s, %s, %s)
+    """
 
-        existing_user = cursor.fetchone()
+    cursor.execute(query, (name, email, password))
 
-        if existing_user:
-            return jsonify({"message": "Email already registered"}), 400
+    conn.commit()
 
-        # Insert new farmer
-        query = """
-        INSERT INTO farmers (email, name, phone, location, password)
-        VALUES (%s,%s,%s,%s,%s)
-        """
+    cursor.close()
+    conn.close()
 
-        cursor.execute(query,(email,name,phone,location,password))
-        conn.commit()
-
-        cursor.close()
-        conn.close()
-
-        return jsonify({"message":"Farmer registered successfully"})
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return {"message": "Farmer registered successfully"}
 
 # Salesman Register API
-# @app.route("/register_salesman", methods=["POST"])
-# def register_salesman():
-
-#     try:
-#         data = request.json
-
-#         email = data["email"]
-#         name = data["name"]
-#         phone = data["phone"]
-#         company = data["company"]
-#         password = data["password"]
-
-#         conn = get_connection()
-#         cursor = conn.cursor(dictionary=True)
-
-#         # check existing email
-#         cursor.execute(
-#             "SELECT * FROM salesmen WHERE email=%s",
-#             (email,)
-#         )
-
-#         existing_user = cursor.fetchone()
-
-#         if existing_user:
-#             return jsonify({"message":"Email already registered"}),400
-
-#         query = """
-#         INSERT INTO salesmen (email,name,phone,company,password)
-#         VALUES (%s,%s,%s,%s,%s)
-#         """
-
-#         cursor.execute(query,(email,name,phone,company,password))
-#         conn.commit()
-
-#         cursor.close()
-#         conn.close()
-
-#         return jsonify({"message":"Salesman registered successfully"})
-
-#     except Exception as e:
-#         return jsonify({"error":str(e)}),500
 @app.route("/register_salesman", methods=["POST"])
 def register_salesman():
 
@@ -136,40 +78,33 @@ def login():
 
     data = request.json
 
-    role = data["role"]
     email = data["email"]
     password = data["password"]
 
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    if role == "farmer":
-
-        cursor.execute(
+    # check farmer
+    cursor.execute(
         "SELECT * FROM farmers WHERE email=%s AND password=%s",
-        (email,password)
-        )
+        (email, password)
+    )
+    farmer = cursor.fetchone()
 
-        user = cursor.fetchone()
+    if farmer:
+        return {"role": "farmer", "id": farmer["farmer_id"]}
 
-        if user:
-            return {"role":"farmer","id":user["farmer_id"]}
-
-    elif role == "salesman":
-
-        cursor.execute(
+    # check salesman
+    cursor.execute(
         "SELECT * FROM salesmen WHERE email=%s AND password=%s",
-        (email,password)
-        )
+        (email, password)
+    )
+    salesman = cursor.fetchone()
 
-        user = cursor.fetchone()
+    if salesman:
+        return {"role": "salesman", "id": salesman["salesman_id"]}
 
-        if user:
-            return {"role":"salesman","id":user["salesman_id"]}
-
-    return {"message":"Invalid login"}
-
-
+    return {"message": "Invalid login"}
 
 # ---------------------------
 # Add Crop
