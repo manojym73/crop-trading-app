@@ -1,98 +1,126 @@
-// function login() {
+// function login(){
 
-//     let email = document.getElementById("email").value;
-//     let password = document.getElementById("password").value;
+// let role = document.getElementById("role").value
+// let email = document.getElementById("email").value
+// let password = document.getElementById("password").value
 
-//     fetch("http://127.0.0.1:5000/login", {
-//         method: "POST",
-//         headers: {
-//             "Content-Type": "application/json"
-//         },
-//         body: JSON.stringify({
-//             email: email,
-//             password: password
-//         })
-//     })
+// fetch(API + "/login",{
 
-//         .then(response => response.json())
-//         .then(data => {
+// method:"POST",
 
-//             console.log(data);
+// headers:{
+// "Content-Type":"application/json"
+// },
 
-//             if (data.role === "farmer") {
+// body:JSON.stringify({
+// role:role,
+// email:email,
+// password:password
+// })
 
-//                 localStorage.setItem("user_role", "farmer");
-//                 localStorage.setItem("farmer_id", data.user.farmer_id);
+// })
 
-//                 window.location = "farmer.html";
+// .then(res=>res.json())
 
-//             }
+// .then(data=>{
 
-//             else if (data.role === "salesman") {
+// if(data.role==="farmer"){
 
-//                 localStorage.setItem("user_role", "salesman");
-//                 localStorage.setItem("salesman_id", data.user.salesman_id);
+// localStorage.setItem("farmer_id",data.id)
 
-//                 window.location = "salesman.html";
-
-//             }
-
-//             else {
-//                 alert("Invalid login");
-//             }
-
-//         });
+// window.location="farmer.html"
 
 // }
 
-function login(){
+// else if(data.role==="salesman"){
 
-let role = document.getElementById("role").value
-let email = document.getElementById("email").value
-let password = document.getElementById("password").value
+// localStorage.setItem("salesman_id",data.id)
 
-fetch(API + "/login",{
+// window.location="salesman.html"
 
-method:"POST",
+// }
 
-headers:{
-"Content-Type":"application/json"
-},
+// else{
 
-body:JSON.stringify({
-role:role,
-email:email,
-password:password
-})
+// alert("Invalid login")
 
-})
+// }
 
-.then(res=>res.json())
+// })
 
-.then(data=>{
+// }
 
-if(data.role==="farmer"){
+let isLogin = true
 
-localStorage.setItem("farmer_id",data.id)
+function toggleForm() {
 
-window.location="farmer.html"
+    isLogin = !isLogin
 
-}
-
-else if(data.role==="salesman"){
-
-localStorage.setItem("salesman_id",data.id)
-
-window.location="salesman.html"
+    if (isLogin) {
+        document.getElementById("form-title").innerText = "Login"
+        document.getElementById("name").style.display = "none"
+        document.getElementById("toggle-text").innerHTML =
+            "Don't have an account? <a href='#' onclick='toggleForm()'>Sign Up</a>"
+    }
+    else {
+        document.getElementById("form-title").innerText = "Sign Up"
+        document.getElementById("name").style.display = "block"
+        document.getElementById("toggle-text").innerHTML =
+            "Already have an account? <a href='#' onclick='toggleForm()'>Login</a>"
+    }
 
 }
 
-else{
+function submitForm() {
 
-alert("Invalid login")
+    let role = document.getElementById("role").value
+    let name = document.getElementById("name").value
+    let email = document.getElementById("email").value
+    let password = document.getElementById("password").value
 
-}
+    if (isLogin) {
 
-})
+        // 🔐 LOGIN
+        fetch(API + "/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        })
+
+            .then(res => res.json())
+            .then(data => {
+
+                if (data.role === "farmer") {
+                    localStorage.setItem("farmer_id", data.id)
+                    window.location = "farmer.html"
+                }
+                else if (data.role === "salesman") {
+                    localStorage.setItem("salesman_id", data.id)
+                    window.location = "salesman.html"
+                }
+                else {
+                    alert("Invalid login")
+                }
+
+            })
+
+    } else {
+
+        // 📝 SIGNUP
+        let url = role === "farmer" ? "/register_farmer" : "/register_salesman"
+
+        fetch(API + url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password })
+        })
+
+            .then(res => res.json())
+            .then(data => {
+                alert("Registered successfully")
+                toggleForm()
+            })
+
+    }
 
 }

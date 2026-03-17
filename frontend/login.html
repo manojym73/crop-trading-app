@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 
 <head>
@@ -31,11 +31,59 @@
 
     <button onclick="login()">Login</button>
 
-    <!-- <script src="js/login.js"></script> -->
     <script src="js/config.js"></script>
     <script src="js/login.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/crops.js"></script>
+
+</body>
+
+</html> -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <h2 id="form-title">Login</h2>
+
+    <!-- ROLE -->
+    <select id="role">
+        <option value="farmer">Farmer</option>
+        <option value="salesman">Salesman</option>
+    </select>
+
+    <br><br>
+
+    <!-- NAME (only for signup) -->
+    <input type="text" id="name" placeholder="Name" style="display:none">
+
+    <br><br>
+
+    <input type="email" id="email" placeholder="Email">
+
+    <br><br>
+
+    <input type="password" id="password" placeholder="Password">
+
+    <br><br>
+
+    <button onclick="submitForm()">Submit</button>
+
+    <br><br>
+
+    <p id="toggle-text">
+        Don't have an account?
+        <a href="#" onclick="toggleForm()">Sign Up</a>
+    </p>
+
+    <script src="js/config.js"></script>
+    <script src="js/login.js"></script>
 
 </body>
 

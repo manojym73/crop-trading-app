@@ -66,47 +66,69 @@ def register_farmer():
         return jsonify({"error": str(e)}), 500
 
 # Salesman Register API
+# @app.route("/register_salesman", methods=["POST"])
+# def register_salesman():
+
+#     try:
+#         data = request.json
+
+#         email = data["email"]
+#         name = data["name"]
+#         phone = data["phone"]
+#         company = data["company"]
+#         password = data["password"]
+
+#         conn = get_connection()
+#         cursor = conn.cursor(dictionary=True)
+
+#         # check existing email
+#         cursor.execute(
+#             "SELECT * FROM salesmen WHERE email=%s",
+#             (email,)
+#         )
+
+#         existing_user = cursor.fetchone()
+
+#         if existing_user:
+#             return jsonify({"message":"Email already registered"}),400
+
+#         query = """
+#         INSERT INTO salesmen (email,name,phone,company,password)
+#         VALUES (%s,%s,%s,%s,%s)
+#         """
+
+#         cursor.execute(query,(email,name,phone,company,password))
+#         conn.commit()
+
+#         cursor.close()
+#         conn.close()
+
+#         return jsonify({"message":"Salesman registered successfully"})
+
+#     except Exception as e:
+#         return jsonify({"error":str(e)}),500
 @app.route("/register_salesman", methods=["POST"])
 def register_salesman():
 
-    try:
-        data = request.json
+    data = request.json
 
-        email = data["email"]
-        name = data["name"]
-        phone = data["phone"]
-        company = data["company"]
-        password = data["password"]
+    name = data["name"]
+    email = data["email"]
+    password = data["password"]
 
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
+    conn = get_connection()
+    cursor = conn.cursor()
 
-        # check existing email
-        cursor.execute(
-            "SELECT * FROM salesmen WHERE email=%s",
-            (email,)
-        )
+    cursor.execute(
+    "INSERT INTO salesmen (name,email,password) VALUES (%s,%s,%s)",
+    (name,email,password)
+    )
 
-        existing_user = cursor.fetchone()
+    conn.commit()
+    cursor.close()
+    conn.close()
 
-        if existing_user:
-            return jsonify({"message":"Email already registered"}),400
-
-        query = """
-        INSERT INTO salesmen (email,name,phone,company,password)
-        VALUES (%s,%s,%s,%s,%s)
-        """
-
-        cursor.execute(query,(email,name,phone,company,password))
-        conn.commit()
-
-        cursor.close()
-        conn.close()
-
-        return jsonify({"message":"Salesman registered successfully"})
-
-    except Exception as e:
-        return jsonify({"error":str(e)}),500
+    return {"message":"Salesman registered"}
     
 # Login API (Both Farmer & Salesman)
 @app.route("/login", methods=["POST"])
