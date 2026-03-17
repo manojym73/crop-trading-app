@@ -157,3 +157,24 @@ canvas {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     z-index: 999;
 }
+
+/* Status Tags */
+.status {
+    padding: 5px 10px;
+    border-radius: 20px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.pending {
+    background: #f39c12;
+}
+
+.approved {
+    background: #27ae60;
+}
+
+.rejected {
+    background: #e74c3c;
+}
