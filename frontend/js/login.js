@@ -1,117 +1,50 @@
-// let isLogin = true
-
-// function toggleForm() {
-
-//     isLogin = !isLogin
-
-//     if (isLogin) {
-//         document.getElementById("form-title").innerText = "Login"
-//         document.getElementById("name").style.display = "none"
-//         document.getElementById("toggle-text").innerHTML =
-//             "Don't have an account? <a href='#' onclick='toggleForm()'>Sign Up</a>"
-//     }
-//     else {
-//         document.getElementById("form-title").innerText = "Sign Up"
-//         document.getElementById("name").style.display = "block"
-//         document.getElementById("toggle-text").innerHTML =
-//             "Already have an account? <a href='#' onclick='toggleForm()'>Login</a>"
-//     }
-
-// }
-
-// function submitForm() {
-
-//     let role = document.getElementById("role").value
-//     let name = document.getElementById("name").value
-//     let email = document.getElementById("email").value
-//     let password = document.getElementById("password").value
-
-//     if (isLogin) {
-
-//         // 🔐 LOGIN
-//         fetch(API + "/login", {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify({ email, password })
-//         })
-
-//             .then(res => res.json())
-//             .then(data => {
-
-//                 if (data.role === "farmer") {
-//                     localStorage.setItem("farmer_id", data.id)
-//                     window.location = "farmer.html"
-//                 }
-//                 else if (data.role === "salesman") {
-//                     localStorage.setItem("salesman_id", data.id)
-//                     window.location = "salesman.html"
-//                 }
-//                 else {
-//                     alert("Invalid login")
-//                 }
-
-//             })
-
-//     } else {
-
-//         // 📝 SIGNUP
-//         let url = role === "farmer" ? "/register_farmer" : "/register_salesman"
-
-//         fetch(API + url, {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify({ name, email, password })
-//         })
-
-//             .then(res => res.json())
-//             .then(data => {
-//                 alert("Registered successfully")
-//                 toggleForm()
-//             })
-
-//     }
-
-// }
-
-
 let isLogin = true;
 
-// 🔁 Toggle Login / Signup
+// ===============================
+// 🔁 TOGGLE LOGIN / SIGNUP
+// ===============================
 function toggleForm() {
 
-    isLogin = !isLogin;
+    isLogin = !isLogin
 
     if (isLogin) {
-        document.getElementById("form-title").innerText = "Login";
-        document.getElementById("name").style.display = "none";
+        document.getElementById("form-title").innerText = "Login"
+        document.getElementById("name").style.display = "none"
+        document.getElementById("phone").style.display = "none"
+
         document.getElementById("toggle-text").innerHTML =
-            "Don't have an account? <a href='#' onclick='toggleForm()'>Sign Up</a>";
+            "Don't have an account? <a href='#' onclick='toggleForm()'>Sign Up</a>"
     }
     else {
-        document.getElementById("form-title").innerText = "Sign Up";
-        document.getElementById("name").style.display = "block";
+        document.getElementById("form-title").innerText = "Sign Up"
+        document.getElementById("name").style.display = "block"
+        document.getElementById("phone").style.display = "block"
+
         document.getElementById("toggle-text").innerHTML =
-            "Already have an account? <a href='#' onclick='toggleForm()'>Login</a>";
+            "Already have an account? <a href='#' onclick='toggleForm()'>Login</a>"
     }
 }
 
 
-// 🚀 Submit (Login / Signup)
+// ===============================
+// 🚀 SUBMIT FORM
+// ===============================
 function submitForm() {
 
     let role = document.getElementById("role").value;
     let name = document.getElementById("name").value;
+    let phone = document.getElementById("phone").value;
     let email = document.getElementById("email").value;
     let password = document.getElementById("password").value;
 
-    // ⚠️ Basic validation
-    if (!email || !password) {
-        alert("Please enter email and password");
-        return;
-    }
-
     // ================= LOGIN =================
     if (isLogin) {
+
+        // ✅ only email + password needed
+        if (!email || !password) {
+            alert("Please enter email and password");
+            return;
+        }
 
         fetch(API + "/login", {
             method: "POST",
@@ -122,46 +55,56 @@ function submitForm() {
             })
         })
 
-            .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("Login failed");
+            return res.json();
+        })
 
-            .then(data => {
+        .then(data => {
 
-                console.log(data); // DEBUG
+            console.log("LOGIN RESPONSE:", data);
 
-                if (data.role === "farmer") {
+            if (data.role === "farmer") {
 
-                    localStorage.setItem("farmer_id", data.id);
-                    window.location = "farmer.html";
+                localStorage.setItem("farmer_id", data.id);
+                localStorage.removeItem("salesman_id");
+                localStorage.setItem("name", data.name);
 
-                }
-                else if (data.role === "salesman") {
+                window.location = "farmer.html";
+            }
 
-                    localStorage.setItem("salesman_id", data.id);
-                    window.location = "salesman.html";
+            else if (data.role === "salesman") {
 
-                }
-                else {
-                    alert("Invalid login");
-                }
+                localStorage.setItem("salesman_id", data.id);
+                localStorage.removeItem("farmer_id");
+                localStorage.setItem("name", data.name);
 
-            })
+                window.location = "salesman.html";
+            }
 
-            .catch(err => {
-                console.error(err);
-                alert("Login error");
-            });
+            else {
+                alert(data.message || "Invalid login");
+            }
+        })
 
+        .catch(err => {
+            console.error("LOGIN ERROR:", err);
+            alert(err.message);
+        });
     }
 
     // ================= SIGNUP =================
     else {
 
-        if (!name) {
-            alert("Please enter name");
+        // ✅ validation
+        if (!name || !email || !password || !phone) {
+            alert("Please fill all fields including phone");
             return;
         }
 
-        let url = role === "farmer" ? "/register_farmer" : "/register_salesman";
+        let url = role === "farmer"
+            ? "/register_farmer"
+            : "/register_salesman";
 
         fetch(API + url, {
             method: "POST",
@@ -169,27 +112,32 @@ function submitForm() {
             body: JSON.stringify({
                 name: name,
                 email: email,
-                password: password
+                password: password,
+                phone: phone   // ✅ FIXED (important)
             })
         })
 
-            .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                return res.json().then(err => {
+                    throw new Error(err.message || "Signup failed");
+                });
+            }
+            return res.json();
+        })
 
-            .then(data => {
+        .then(data => {
 
-                console.log(data); // DEBUG
+            console.log("SIGNUP RESPONSE:", data);
 
-                alert(data.message || "Registered successfully");
+            alert(data.message || "Registered successfully");
 
-                toggleForm(); // go back to login
+            toggleForm(); // back to login
+        })
 
-            })
-
-            .catch(err => {
-                console.error(err);
-                alert("Signup error");
-            });
-
+        .catch(err => {
+            console.error("SIGNUP ERROR:", err);
+            alert(err.message);
+        });
     }
-
 }

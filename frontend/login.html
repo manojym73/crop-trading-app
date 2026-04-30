@@ -1,87 +1,46 @@
-<!-- <!DOCTYPE html>
-<html>
-
-<head>
-
-    <title>Login</title>
-    <link rel="stylesheet" href="style.css">
-
-</head>
-
-<body>
-    <h2>Login</h2>
-
-    <label>Select Login Type</label>
-    <br><br>
-
-    <select id="role">
-        <option value="farmer">Farmer</option>
-        <option value="salesman">Salesman</option>
-    </select>
-
-    <br><br>
-
-    <input type="email" id="email" placeholder="Email">
-
-    <br><br>
-
-    <input type="password" id="password" placeholder="Password">
-
-    <br><br>
-
-    <button onclick="login()">Login</button>
-
-    <script src="js/config.js"></script>
-    <script src="js/login.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/crops.js"></script>
-
-</body>
-
-</html> -->
-
 <!DOCTYPE html>
 <html>
 
 <head>
     <title>Login</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
-<body>
+<body class="auth-body">
 
-    <h2 id="form-title">Login</h2>
+    <div class="auth-container">
 
-    <!-- ROLE -->
-    <select id="role">
-        <option value="farmer">Farmer</option>
-        <option value="salesman">Salesman</option>
-    </select>
+        <div class="auth-card">
 
-    <br><br>
+            <h2 id="form-title">Login</h2>
 
-    <!-- NAME (only for signup) -->
-    <input type="text" id="name" placeholder="Name" style="display:none">
+            <!-- ROLE -->
+            <select id="role">
+                <option value="farmer">Farmer</option>
+                <option value="salesman">Salesman</option>
+            </select>
 
-    <br><br>
+            <!-- NAME -->
+            <input type="text" id="name" placeholder="Name" style="display:none">
 
-    <input type="email" id="email" placeholder="Email">
+            <input type="text" id="phone" placeholder="Phone Number" style="display:none">
 
-    <br><br>
+            <input type="email" id="email" placeholder="Email"> 
 
-    <input type="password" id="password" placeholder="Password">
+            <input type="password" id="password" placeholder="Password">
 
-    <br><br>
+            <button onclick="submitForm()">Submit</button>
 
-    <button onclick="submitForm()">Submit</button>
+            <p id="toggle-text">
+                Don't have an account?
+                <a href="#" onclick="toggleForm()">Sign Up</a>
+            </p>
 
-    <br><br>
+        </div>
 
-    <p id="toggle-text">
-        Don't have an account?
-        <a href="#" onclick="toggleForm()">Sign Up</a>
-    </p>
-
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/config.js"></script>
     <script src="js/login.js"></script>
 
