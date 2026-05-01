@@ -1,0 +1,65 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to right, #f8f9fa, #e9f5ee);
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 12px;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Inputs */
+.form-control {
+    border-radius: 8px;
+}
+/* Button Hover Effects */
+.btn-outline-dark:hover {
+    background-color: green !important;
+    color: white !important;
+    border-color: green !important;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+}
+
+/* 🌾 MARKETPLACE (Crop Cards) */
+.crop-card {
+    border-radius: 14px;
+    transition: 0.3s;
+    height: 100%;
+}
+
+.crop-card:hover {
+    transform: translateY(-6px);
+}
+
+/* FIXED IMAGE SIZE */
+.crop-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 12px;
+    transition: 0.3s;
+}
+
+/* hover zoom */
+.crop-card:hover img {
+    transform: scale(1.05);
+}
+
+/* Notification */
+.notification-box {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 999;
+}
+

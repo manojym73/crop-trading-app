@@ -3,85 +3,115 @@
 
 <head>
     <title>Farmer Dashboard</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/farmer.css">
 </head>
 
-<body onload="loadStats(); loadCropChart(); loadNavbar(); loadFarmerOrders();">
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success px-4">
-        <a class="navbar-brand fw-bold">🌾 Crop Trading</a>
+<body onload="initPage()">
 
-        <div class="ms-auto d-flex align-items-center gap-2" id="nav-right"></div>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-dark bg-success px-4 py-3 shadow-sm">
+        <div class="container-fluid">
+
+            <!-- Logo -->
+            <a class="navbar-brand fw-bold fs-4" href="index.html">🌾 Crop Trading</a>
+
+            <!-- Right Side -->
+            <div class="ms-auto d-flex align-items-center gap-3">
+
+                <!-- Home -->
+                <a href="index.html" class="btn btn-outline-light btn-sm">
+                    🏠 Home
+                </a>
+
+                <!-- ✅ ONLY BUTTON -->
+                <button class="btn btn-outline-light btn-sm" onclick="openOrdersPage()">
+                    📦 Received Orders
+                </button>
+
+                <!-- Profile -->
+                <div id="nav-right"></div>
+
+            </div>
+        </div>
     </nav>
 
-    <div id="notification-box" class="notification-box"></div>
+    <!-- MAIN -->
+    <div class="container mt-4">
 
-    <div class="content">
+        <h2 class="fw-bold mb-4">👨‍🌾 Farmer Dashboard</h2>
 
-        <h1>Farmer Dashboard</h1>
-
-        <h2>Received Orders</h2>
-
-        <div id="farmer-orders"></div>
-        
         <!-- ADD CROP -->
-        <div class="card">
-            <h3>Add Crop</h3>
+        <div class="card p-4 shadow-sm mb-4">
+            <h5 class="mb-3">➕ Add Crop</h5>
 
-            <input class="form-control" id="crop_name" placeholder="Crop Name">
-            <input class="form-control" id="quantity" placeholder="Quantity (kg)">
-            <input class="form-control" id="price" placeholder="Price per kg">
-            <input class="form-control" id="location" placeholder="Location">
-            <input class="form-control" type="file" id="image">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <input class="form-control" id="crop_name" placeholder="Crop Name">
+                </div>
+                <div class="col-md-3">
+                    <input class="form-control" id="quantity" placeholder="Quantity (kg)">
+                </div>
+                <div class="col-md-3">
+                    <input class="form-control" id="price" placeholder="Price/kg">
+                </div>
+                <div class="col-md-6">
+                    <input class="form-control" id="location" placeholder="Location">
+                </div>
+                <div class="col-md-6">
+                    <input class="form-control" type="file" id="image">
+                </div>
+            </div>
 
-            <button class="btn btn-success mt-2" onclick="handleAddCrop()">Add Crop</button>
+            <button class="btn btn-success mt-3" onclick="handleAddCrop()">
+                Add Crop
+            </button>
         </div>
 
-        <!-- STATS -->
-        <h2>Dashboard</h2>
+        <!-- MY CROPS -->
+        <div class="card p-4 shadow-sm mb-4">
 
-        <div class="stats">
-            <div class="card">
-                <h3 id="totalCrops"></h3>
-                <p>Total Crops</p>
+            <div class="d-flex justify-content-between">
+                <h5>🌾 My Crops</h5>
+                <button class="btn btn-outline-success btn-sm" onclick="loadMyCrops()">Refresh</button>
             </div>
 
-            <div class="card">
-                <h3 id="totalOrders"></h3>
-                <p>Total Orders</p>
-            </div>
+            <div id="my-crops" class="row g-3 mt-2"></div>
 
-            <div class="card">
-                <h3 id="totalFarmers"></h3>
-                <p>Total Farmers</p>
-            </div>
-
-            <div class="card">
-                <h3 id="totalSalesmen"></h3>
-                <p>Total Salesmen</p>
-            </div>
-        </div>
-
-        <!-- CHART -->
-        <h2>Crop Statistics</h2>
-
-        <div class="card">
-            <canvas id="cropChart"></canvas>
         </div>
 
     </div>
+
+    <!-- Scripts -->
+    <script>
+        let farmer = localStorage.getItem("farmer_id");
+
+        if (!farmer) {
+            alert("❌ Login as Farmer");
+            window.location = "index.html";
+        }
+
+        function initPage() {
+            loadNavbar();
+            loadMyCrops();
+            loadStats();
+        }
+
+        function openOrdersPage() {
+            window.location = "farmer-orders.html";
+        }
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+
     <script src="js/config.js"></script>
-    <script src="js/crops.js"></script>
     <script src="js/auth.js"></script>
-    <script src="js/orders.js"></script>
-
-    <!-- ✅ ADD THIS -->
-    <script src="js/farmerOrders.js"></script>
-
-    <script src="js/notifications.js"></script>
+    <script src="js/crops.js"></script>
     <script src="js/dashboard.js"></script>
 
 </body>

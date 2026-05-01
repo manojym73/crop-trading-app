@@ -1,105 +1,126 @@
+// ===============================
+// 🔐 AUTH + USER HELPERS
+// ===============================
 
-// ===============================
-// 🔍 GET USER INFO
-// ===============================
 function getUser() {
     return {
         farmer: localStorage.getItem("farmer_id"),
         salesman: localStorage.getItem("salesman_id"),
-        name: localStorage.getItem("name")
-    }
-}
-
-
-// ===============================
-// 👋 NAVBAR (OPTIONAL)
-// ===============================
-function loadNavbar(){
-
-    let farmer = localStorage.getItem("farmer_id")
-    let salesman = localStorage.getItem("salesman_id")
-    let name = localStorage.getItem("name")
-
-    let html = ""
-
-    // ✅ LOGGED IN
-    if(farmer || salesman){
-        html = `
-            <span>Welcome👋</span>
-            <button onclick="logout()">Logout</button>
-        `
-    }
-
-    // ❌ NOT LOGGED
-    else{
-        html = `
-            <a href="login.html">Sign In</a>
-            <a href="login.html">Sign Up</a>
-        `
-    }
-
-    document.getElementById("nav-right").innerHTML = html
+        name: localStorage.getItem("name"),
+        email: localStorage.getItem("email"),
+        phone: localStorage.getItem("phone")
+    };
 }
 
 // ===============================
-// 🚀 login BUTTON
-// ===============================
-function goLogin() {
-    window.location = "login.html"
-}
-
-// ===============================
-// 🚀 FARMER BUTTON
-// ===============================
-function goFarmer(){
-    window.location = "farmer.html"
-}
-
-
-// ===============================
-// 🚀 SALESMAN BUTTON
-// ===============================
-function goSalesman(){
-    window.location = "salesman.html"
-}
-
-
-// ===============================
-// 🔓 LOGOUT
+// 🚪 LOGOUT
 // ===============================
 function logout() {
-    localStorage.clear()
-    window.location = "index.html"
+    localStorage.clear();
+    window.location = "index.html";
 }
 
-
 // ===============================
-// 🌾 ADD CROP (FARMER ONLY)
+// 🧑‍💼 NAVBAR (ALL PAGES)
 // ===============================
-function handleAddCrop(){
+function loadNavbar() {
 
-    let farmer_id = localStorage.getItem("farmer_id")
+    let nav = document.getElementById("nav-right");
 
-    if(!farmer_id){
-        alert("You are not logged in. Please login first.")
-        return
+    let farmer = localStorage.getItem("farmer_id");
+    let salesman = localStorage.getItem("salesman_id");
+    let name = localStorage.getItem("name");
+    let email = localStorage.getItem("email");
+    let phone = localStorage.getItem("phone");
+
+    // ❌ NOT LOGGED
+    if (!farmer && !salesman) {
+        nav.innerHTML = `
+            <a href="login.html" class="btn btn-light">Sign In</a>
+            <a href="login.html" class="btn btn-outline-light">Sign Up</a>
+        `;
+        return;
     }
 
-    addCrop()
+    // ✅ LOGGED
+    nav.innerHTML = `
+        <div class="dropdown">
+            <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                👤 ${name}
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end p-3 shadow">
+
+                <li><strong>${name}</strong></li>
+                <li class="text-muted small">${email}</li>
+                <li class="text-muted small">${phone}</li>
+
+                <hr>
+
+                <li>
+                    <button class="btn btn-danger w-100" onclick="logout()">Logout</button>
+                </li>
+
+            </ul>
+        </div>
+    `;
 }
 
+function logout() {
+    localStorage.clear();
+    window.location = "index.html";
+}
 
 // ===============================
-// 🛒 BUY CROP (SALESMAN ONLY)
+// 🚀 NAVIGATION WITH ROLE CHECK
 // ===============================
-function handleBuy(crop_id){
 
-    let salesman_id = localStorage.getItem("salesman_id")
+function goFarmer() {
+    let user = getUser();
 
-    if(!salesman_id){
-        alert("You are not logged in. Please login first.")
-        return
+    if (user.salesman && !user.farmer) {
+        alert("❌ You are logged in as Salesman.\nLogout first.");
+        return;
     }
 
-    placeOrder(crop_id)
+    window.location = "farmer.html";
+}
+
+function goSalesman() {
+    let user = getUser();
+
+    if (user.farmer && !user.salesman) {
+        alert("❌ You are logged in as Farmer.\nLogout first.");
+        return;
+    }
+
+    window.location = "salesman.html";
+}
+
+// ===============================
+// 🌾 FARMER ACTION
+// ===============================
+function handleAddCrop() {
+    let user = getUser();
+
+    if (!user.farmer) {
+        alert("Login as Farmer first");
+        return;
+    }
+
+    addCrop();
+}
+
+// ===============================
+// 🛒 SALESMAN ACTION
+// ===============================
+function handleBuy(crop_id) {
+    let user = getUser();
+
+    if (!user.salesman) {
+        alert("Login as Salesman first");
+        return;
+    }
+
+    placeOrder(crop_id);
 }

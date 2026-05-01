@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Farmer Orders</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/farmer.css">
+</head>
+
+<body onload="initPage()">
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-dark bg-success px-4 py-3">
+        <div class="container-fluid">
+
+            <a class="navbar-brand" href="farmer.html">🌾 Crop Trading</a>
+
+            <div class="ms-auto d-flex gap-2">
+
+                <a href="farmer.html" class="btn btn-outline-light btn-sm">
+                    ← Back
+                </a>
+
+                <div id="nav-right"></div>
+
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- MAIN -->
+    <div class="container mt-4">
+
+        <div class="d-flex justify-content-between">
+            <h3>📦 Received Orders</h3>
+
+            <button class="btn btn-outline-success btn-sm" onclick="loadFarmerOrders()">
+                Refresh
+            </button>
+        </div>
+
+        <div id="farmer-orders" class="row g-4 mt-2"></div>
+
+    </div>
+
+    <script>
+        function initPage() {
+            loadNavbar();
+            loadFarmerOrders();
+        }
+    </script>
+
+    <script src="js/config.js"></script>    
+    <script src="js/auth.js"></script>
+    <script src="js/farmerOrders.js"></script>
+
+</body>
+
+</html>

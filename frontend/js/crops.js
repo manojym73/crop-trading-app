@@ -57,27 +57,25 @@ function loadCrops() {
                 if (quantity <= 0) return
 
                 html += `
-<div class="card">
+<div class="col-md-4">
+    <div class="card p-3 shadow-sm crop-card">
 
-<img src="http://127.0.0.1:5000/uploads/${image}"
-style="width:100%;height:150px;object-fit:cover;">
+        <img src="${API}/uploads/${crop.image}" class="img-fluid mb-2">
 
-<h3>${crop.crop_name}</h3>
+        <h5>${crop.crop_name}</h5>
 
-<p><b>Farmer:</b> ${crop.farmer_name}</p>
+        <p><b>Farmer:</b> ${crop.farmer_name}</p>
+        <p><b>Price:</b> ₹${crop.price}/kg</p>
+        <p><b>Available:</b> ${crop.quantity} kg</p>
+        <p><b>Location:</b> ${crop.location}</p>
 
-<p><b>Price:</b> ₹${price} / kg</p>
+        <input type="number" class="form-control mb-2" placeholder="Enter quantity (kg)">
 
-<p><b>Available:</b> ${quantity} kg</p>
+        <button class="btn btn-success w-100">
+            Buy Crop
+        </button>
 
-<p><b>Location:</b> ${crop.location}</p>
-
-<input id="qty-${crop.crop_id}" placeholder="Enter quantity (kg)">
-
-<button onclick="handleBuy(${crop.crop_id})">
-Buy Crop
-</button>
-
+    </div>
 </div>
 `
             })
@@ -248,4 +246,67 @@ function loadStats() {
             document.getElementById("totalSalesmen").innerText = data.total_salesmen
 
         })
+}
+
+// ===============================
+// LOAD MY CROPS
+// ===============================   
+function loadMyCrops() {
+
+    let farmer_id = Number(localStorage.getItem("farmer_id"));
+
+    console.log("Logged farmer:", farmer_id);
+
+    fetch(API + "/crops")
+    .then(res => res.json())
+    .then(data => {
+
+        console.log("CROPS DATA:", data);
+
+        let container = document.getElementById("my-crops");
+
+        if (!data.crops || data.crops.length === 0) {
+            container.innerHTML = "<p>No crops available</p>";
+            return;
+        }
+
+        // ✅ FILTER BY farmer_id
+        let myCrops = data.crops.filter(crop => 
+            crop.farmer_id === farmer_id
+        );
+
+        console.log("FILTERED CROPS:", myCrops);
+
+        if (myCrops.length === 0) {
+            container.innerHTML = "<p>No crops added yet</p>";
+            return;
+        }
+
+        let html = "";
+
+        myCrops.forEach(crop => {
+
+            html += `
+            <div class="col-md-4">
+                <div class="card p-3 shadow-sm crop-card">
+
+ 
+
+                    <h5>${crop.crop_name}</h5>
+
+                    <p><b>Quantity:</b> ${crop.quantity} kg</p>
+                    <p><b>Price:</b> ₹${crop.price}/kg</p>
+                    <p><b>Location:</b> ${crop.location}</p>
+
+                </div>
+            </div>
+            `;
+        });
+
+        container.innerHTML = html;
+
+    })
+    .catch(err => {
+        console.error("ERROR:", err);
+    });
 }

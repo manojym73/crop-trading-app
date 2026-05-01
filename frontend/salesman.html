@@ -2,51 +2,116 @@
 <html>
 
 <head>
-    <title>Marketplace</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Crop Marketplace</title>
+
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/salesman.css">
 </head>
 
-<body onload="loadCrops(); loadNavbar();">
+<body onload="loadNavbar(); loadCrops();">
 
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success px-4">
-        <a class="navbar-brand fw-bold">🌾 Crop Trading</a>
-        <div class="nav-left">
-            <button onclick="showOrders()">📦 My Orders</button>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success px-4 py-3 shadow-sm">
+        <div class="container-fluid">
+
+            <!-- Logo -->
+            <a class="navbar-brand fw-bold fs-4" href="index.html">🌾 Crop Trading</a>
+
+            <!-- Right Side -->
+            <div class="ms-auto d-flex align-items-center gap-3">
+
+                <!-- 🏠 Home Button -->
+                <a href="index.html" class="btn btn-outline-light btn-sm">
+                    🏠 Home
+                </a>
+
+                <!-- Other buttons (Orders etc.) -->
+                <!-- Example -->
+                <button class="btn btn-outline-light btn-sm" onclick="showOrders()">
+                    📦 Orders
+                </button>
+
+                <!-- Profile -->
+                <div id="nav-right"></div>
+
+            </div>
+
         </div>
-        <div class="ms-auto d-flex align-items-center gap-2" id="nav-right"></div>
     </nav>
 
-
+    <!-- 🔔 Notification -->
     <div id="notification-box" class="notification-box"></div>
 
-    <!-- MAIN CONTENT -->
-    <div class="content">
+    <!-- MAIN -->
+    <div class="container mt-4">
 
-        <h1>Crop Marketplace</h1>
+        <h2 class="fw-bold mb-4 text-center" data-aos="fade-up">
+            🛒 Crop Marketplace
+        </h2>
 
-        <!-- SEARCH -->
-        <div class="card search-box">
-            <input type="text" id="searchCrop" placeholder="Search crop name">
-            <input type="text" id="searchLocation" placeholder="Location">
+        <!-- 🔍 SEARCH -->
+        <div class="card p-4 shadow-sm mb-4" data-aos="fade-up">
 
-            <button onclick="searchCrops()">Search</button>
-            <button onclick="loadCrops()">Reset</button>
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <input type="text" id="searchCrop" class="form-control" placeholder="Search crop name">
+                </div>
+
+                <div class="col-md-5">
+                    <input type="text" id="searchLocation" class="form-control" placeholder="Location">
+                </div>
+
+                <div class="col-md-2 d-flex gap-2">
+                    <button class="btn btn-success w-100" onclick="searchCrops()">Search</button>
+
+                    <button class="btn btn-outline-success w-100" onclick="loadCrops()">Reset</button>
+                </div>
+            </div>
+
         </div>
 
-        <!-- CROPS -->
-        <div id="crop-list" class="row g-4"></div>
+        <!-- 🌾 CROPS -->
+        <div id="crop-list" class="row g-4" data-aos="fade-up"></div>
 
-        <!-- ORDERS -->
+        <!-- 📦 ORDERS -->
         <div id="orders-section" style="display:none">
-            <h2>My Orders</h2>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4>📦 My Orders</h4>
+
+                <button class="btn btn-outline-dark" onclick="goBackToMarket()">
+                    ← Back
+                </button>
+
+            </div>
+
             <div id="orders-list"></div>
         </div>
 
     </div>
 
+    <script>
+    let salesman = localStorage.getItem("salesman_id");
+
+    if (!salesman) {
+        alert("❌ Access denied! Login as Salesman.");
+        window.location = "index.html";
+    }
+</script>
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>AOS.init();</script>
+
     <script src="js/config.js"></script>
     <script src="js/crops.js"></script>
     <script src="js/auth.js"></script>

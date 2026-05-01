@@ -1,47 +1,72 @@
-function loadFarmerOrders(){
+function loadFarmerOrders() {
 
-    let farmer_id = localStorage.getItem("farmer_id")
+    let farmer_id = localStorage.getItem("farmer_id");
 
     fetch(API + "/farmer_orders/" + farmer_id)
-    .then(res => res.json())
-    .then(data => {
+        .then(res => res.json())
+        .then(data => {
 
-        let html = ""
+            console.log("ORDERS:", data.orders);
 
-        if(data.orders.length === 0){
-            html = "<p>No orders received</p>"
-        }
+            let container = document.getElementById("farmer-orders");
 
-        data.orders.forEach(order => {
+            let html = "";
 
-            html += `
-<div class="card">
-
-<h3>${order.crop_name}</h3>
-
-<p><b>Salesman:</b> ${order.salesman_name}</p>
-
-<p><b>Quantity:</b> ${order.quantity} kg</p>
-
-<p><b>Status:</b> ${order.status}</p>
-`
-
-            // ✅ show phone after approval
-            if(order.status === "Approved"){
-                html += `<p>📞 Salesman: ${order.salesman_phone}</p>`
+            if (!data.orders || data.orders.length === 0) {
+                container.innerHTML = "<p>No orders yet</p>";
+                return;
             }
 
-            // ✅ show buttons if pending
-            if(order.status === "Pending"){
+            data.orders.forEach(order => {
+
+                // ✅ USE CORRECT KEYS FROM BACKEND
+                let name  = order.salesman_name  || "N/A";
+                let email = order.salesman_email || "N/A"; // (not coming yet)
+                let phone = order.salesman_phone || "N/A";
+
+                let statusUI = "";
+
+                if (order.status === "accepted") {
+                    statusUI = `<span class="badge bg-success">Accepted</span>`;
+                }
+                else if (order.status === "rejected") {
+                    statusUI = `<span class="badge bg-danger">Rejected</span>`;
+                }
+                else {
+                    statusUI = `
+                        <button class="btn btn-success btn-sm me-2"
+                            onclick="updateOrder(${order.order_id}, 'accepted')">
+                            ✔ Accept
+                        </button>
+
+                        <button class="btn btn-danger btn-sm"
+                            onclick="updateOrder(${order.order_id}, 'rejected')">
+                            ✖ Reject
+                        </button>
+                    `;
+                }
+
                 html += `
-<button onclick="updateOrder(${order.order_id}, 'Approved')">Approve</button>
-<button onclick="updateOrder(${order.order_id}, 'Rejected')">Reject</button>
-`
-            }
+                <div class="col-md-4">
+                    <div class="card p-3 shadow-sm">
 
-            html += `</div>`
-        })
+                        <h5>${order.crop_name}</h5>
 
-        document.getElementById("farmer-orders").innerHTML = html
-    })
+                        <p>👤 <b>Buyer:</b> ${name}</p>
+
+                        <p>📞 <b>Phone:</b> ${phone}</p>
+
+                        <p>🌾 <b>Quantity:</b> ${order.quantity} kg</p>
+
+                        <div class="mt-2">
+                            ${statusUI}
+                        </div>
+
+                    </div>
+                </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        });
 }

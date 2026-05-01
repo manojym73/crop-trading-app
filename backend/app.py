@@ -98,13 +98,13 @@ def login():
 
     data = request.json
 
-    email = data["email"]
-    password = data["password"]
+    email = data.get("email")
+    password = data.get("password")
 
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # check farmer
+    # ===== FARMER =====
     cursor.execute(
         "SELECT * FROM farmers WHERE email=%s AND password=%s",
         (email, password)
@@ -112,9 +112,18 @@ def login():
     farmer = cursor.fetchone()
 
     if farmer:
-        return {"role": "farmer", "id": farmer["farmer_id"]}
+        cursor.close()
+        conn.close()
 
-    # check salesman
+        return jsonify({
+            "role": "farmer",
+            "id": farmer["farmer_id"],
+            "name": farmer["name"],
+            "email": farmer["email"],
+            "phone": farmer["phone"]
+        })
+
+    # ===== SALESMAN =====
     cursor.execute(
         "SELECT * FROM salesmen WHERE email=%s AND password=%s",
         (email, password)
@@ -122,10 +131,22 @@ def login():
     salesman = cursor.fetchone()
 
     if salesman:
-        return {"role": "salesman", "id": salesman["salesman_id"]}
+        cursor.close()
+        conn.close()
 
-    return {"message": "Invalid login"}
+        return jsonify({
+            "role": "salesman",
+            "id": salesman["salesman_id"],
+            "name": salesman["name"],
+            "email": salesman["email"],
+            "phone": salesman["phone"]
+        })
 
+    cursor.close()
+    conn.close()
+
+    return jsonify({"message": "Invalid login"}), 401
+    
 # Add Crop API
 @app.route("/add_crop", methods=["POST"])
 def add_crop():
@@ -192,54 +213,74 @@ def uploaded_file(filename):
 # ---------------------------
 # Get All Crops
 # ---------------------------
-@app.route("/crops", methods=["GET"])
+@app.route("/crops")
 def get_crops():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
 
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT 
+                crops.*,
+                farmers.name AS farmer_name,
+                crops.farmer_id
+            FROM crops
+            JOIN farmers ON crops.farmer_id = farmers.farmer_id
+        """)
 
-    query = """
-    SELECT 
-        crops.crop_id,
-        crops.crop_name,
-        crops.quantity,
-        crops.price,
-        crops.location,
-        crops.image,
-        farmers.name AS farmer_name
-    FROM crops
-    JOIN farmers ON crops.farmer_id = farmers.farmer_id
-    """
+        crops = cursor.fetchall()
 
-    cursor.execute(query)
-    crops = cursor.fetchall()
+        cursor.close()
+        conn.close()
 
-    cursor.close()
-    conn.close()
+        return {"crops": crops}
 
-    return jsonify({"crops": crops})
-
+    except Exception as e:
+        print("CROPS ERROR:", e)
+        return {"error": str(e)}, 500
 
 # ---------------------------
 # Place Order
 # ---------------------------
 @app.route("/place_order", methods=["POST"])
 def place_order():
-
     try:
         data = request.json
 
         salesman_id = data.get("salesman_id")
         crop_id = data.get("crop_id")
-        quantity = data.get("quantity")
-
-        # ✅ validation
-        if not salesman_id or not crop_id or not quantity:
-            return jsonify({"message": "All fields required"}), 400
+        quantity = int(data.get("quantity"))
 
         conn = get_connection()
         cursor = conn.cursor()
 
+        # 🔍 Get current quantity
+        cursor.execute("SELECT quantity FROM crops WHERE crop_id=%s", (crop_id,))
+        crop = cursor.fetchone()
+
+        if not crop:
+            return jsonify({"message": "Crop not found"}), 404
+
+        current_qty = crop[0]
+
+        # ❌ Not enough stock
+        if quantity > current_qty:
+            return jsonify({"message": "Not enough stock"}), 400
+
+        # ✅ Reduce quantity
+        new_qty = current_qty - quantity
+
+        if new_qty == 0:
+            # delete crop
+            cursor.execute("DELETE FROM crops WHERE crop_id=%s", (crop_id,))
+        else:
+            # update quantity
+            cursor.execute(
+                "UPDATE crops SET quantity=%s WHERE crop_id=%s",
+                (new_qty, crop_id)
+            )
+
+        # ✅ Save order
         cursor.execute("""
             INSERT INTO orders (salesman_id, crop_id, quantity, status)
             VALUES (%s, %s, %s, 'Pending')
@@ -253,7 +294,7 @@ def place_order():
         return jsonify({"message": "Order placed successfully"})
 
     except Exception as e:
-        print("PLACE ORDER ERROR:", e)
+        print("ORDER ERROR:", e)
         return jsonify({"error": str(e)}), 500
 
 # ---------------------------
@@ -325,81 +366,19 @@ def update_order_status():
     status = data["status"]
 
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
-    # ===============================
-    # 1️⃣ GET ORDER DETAILS
-    # ===============================
     cursor.execute("""
-        SELECT crop_id, quantity, status
-        FROM orders
-        WHERE order_id = %s
-    """, (order_id,))
-    
-    order = cursor.fetchone()
-
-    if not order:
-        return jsonify({"message": "Order not found"}), 404
-
-    # ❌ prevent double processing
-    if order["status"] != "Pending":
-        return jsonify({"message": "Order already processed"})
-
-    crop_id = order["crop_id"]
-    order_qty = order["quantity"]
-
-    # ===============================
-    # 2️⃣ IF APPROVED → CHECK STOCK
-    # ===============================
-    if status == "Approved":
-
-        cursor.execute("""
-            SELECT quantity FROM crops WHERE crop_id = %s
-        """, (crop_id,))
-        
-        crop = cursor.fetchone()
-
-        if not crop:
-            return jsonify({"message": "Crop not found"}), 404
-
-        # ❌ IF NOT ENOUGH STOCK → AUTO REJECT
-        if crop["quantity"] < order_qty:
-
-            cursor.execute("""
-                UPDATE orders
-                SET status = 'Rejected'
-                WHERE order_id = %s
-            """, (order_id,))
-
-            conn.commit()
-
-            cursor.close()
-            conn.close()
-
-            return jsonify({"message": "Order rejected (Insufficient stock)"})
-
-        # ✅ REDUCE STOCK
-        cursor.execute("""
-            UPDATE crops
-            SET quantity = quantity - %s
-            WHERE crop_id = %s
-        """, (order_qty, crop_id))
-
-    # ===============================
-    # 3️⃣ UPDATE ORDER STATUS
-    # ===============================
-    cursor.execute("""
-        UPDATE orders
-        SET status = %s
+        UPDATE orders 
+        SET status = %s 
         WHERE order_id = %s
     """, (status, order_id))
 
     conn.commit()
-
     cursor.close()
     conn.close()
 
-    return jsonify({"message": f"Order {status} successfully"})
+    return {"message": "Order updated successfully"}
 
 # orders for specific farmer
 @app.route("/farmer_orders/<int:farmer_id>")
@@ -466,7 +445,40 @@ def get_stats():
     except Exception as e:
         return jsonify({"error": str(e)})
 
+# orders for specific farmer with buyer details
+@app.route("/farmer_orders/<int:farmer_id>")
+def get_farmer_orders(farmer_id):
 
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT 
+            o.order_id,
+            o.quantity,
+            o.status,
+
+            c.crop_name,
+
+            s.name AS name,
+            s.email AS email,
+            s.phone AS phone
+
+        FROM orders o
+        JOIN crops c ON o.crop_id = c.crop_id
+        JOIN salesmen s ON o.salesman_id = s.salesman_id
+
+        WHERE c.farmer_id = %s
+    """, (farmer_id,))
+
+    orders = cursor.fetchall()
+
+    print("DEBUG ORDERS:", orders)   # 👈 VERY IMPORTANT
+
+    cursor.close()
+    conn.close()
+
+    return {"orders": orders}
 
 # Run the Flask app 
 if __name__ == "__main__":

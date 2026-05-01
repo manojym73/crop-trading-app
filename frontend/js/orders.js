@@ -140,14 +140,14 @@ function loadSalesmanOrders() {
 
 // Show salesman orders section
 function showOrders() {
+    document.getElementById("orders-section").style.display = "block";
+    document.getElementById("crop-list").style.display = "none";
 
-    // hide crop marketplace
-    document.getElementById("crop-list").style.display = "none"
+    loadOrders();
+}
 
-    // show orders section
-    document.getElementById("orders-section").style.display = "block"
-
-    // load orders for this salesman
-    loadSalesmanOrders()
-
+// Go back to crop marketplace
+function goBackToMarket() {
+    document.getElementById("orders-section").style.display = "none";
+    document.getElementById("crop-list").style.display = "flex";
 }
