@@ -35,10 +35,24 @@ body {
     transform: translateY(-10px);
 }
 
-/* CONTACT BUTTONS */
+/* CONTACT CARD */
+.contact-card {
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ffffff, #f3fdf6);
+}
+
+/* BUTTON STYLE */
 .contact-btn {
-    border-radius: 8px;
     padding: 10px 20px;
+    font-weight: 500;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+/* HOVER EFFECT */
+.contact-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
 }
 
 /* FOOTER */
