@@ -74,26 +74,45 @@ function logout() {
 // ===============================
 // 🚀 NAVIGATION WITH ROLE CHECK
 // ===============================
-
 function goFarmer() {
-    let user = getUser();
 
-    if (user.salesman && !user.farmer) {
-        alert("❌ You are logged in as Salesman.\nLogout first.");
+    let farmer = localStorage.getItem("farmer_id");
+    let salesman = localStorage.getItem("salesman_id");
+
+    // ✅ If not logged in → go to login
+    if (!farmer && !salesman) {
+        window.location = "login.html";
         return;
     }
 
+    // ❌ If wrong role
+    if (salesman) {
+        alert("❌ You are logged in as Salesman");
+        return;
+    }
+
+    // ✅ Correct role
     window.location = "farmer.html";
 }
 
 function goSalesman() {
-    let user = getUser();
 
-    if (user.farmer && !user.salesman) {
-        alert("❌ You are logged in as Farmer.\nLogout first.");
+    let farmer = localStorage.getItem("farmer_id");
+    let salesman = localStorage.getItem("salesman_id");
+
+    // ✅ If not logged in → go to login
+    if (!farmer && !salesman) {
+        window.location = "login.html";
         return;
     }
 
+    // ❌ If wrong role
+    if (farmer) {
+        alert("❌ You are logged in as Farmer");
+        return;
+    }
+
+    // ✅ Correct role
     window.location = "salesman.html";
 }
 
@@ -123,4 +142,28 @@ function handleBuy(crop_id) {
     }
 
     placeOrder(crop_id);
+}
+
+// ===============================
+// 🏠 SMART HOME REDIRECTION
+// ===============================
+function goSalesman() {
+
+    let farmer = localStorage.getItem("farmer_id");
+    let salesman = localStorage.getItem("salesman_id");
+
+    // ✅ If not logged in → go to login
+    if (!farmer && !salesman) {
+        window.location = "login.html";
+        return;
+    }
+
+    // ❌ If wrong role
+    if (farmer) {
+        alert("❌ You are logged in as Farmer");
+        return;
+    }
+
+    // ✅ Correct role
+    window.location = "salesman.html";
 }
