@@ -1,0 +1,47 @@
+/* FONT + BACKGROUND */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to right, #f8f9fa, #e9f5ee);
+}
+
+/* HERO */
+.hero {
+    padding: 100px 20px;
+}
+
+.hero h1 {
+    font-size: 48px;
+    font-weight: 700;
+}
+
+.hero p {
+    font-size: 18px;
+}
+
+/* BUTTONS */
+.hero-btn {
+    border-radius: 10px;
+    padding: 12px 25px;
+}
+
+/* FEATURE CARDS */
+.feature-card {
+    border: none;
+    border-radius: 12px;
+    transition: 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+}
+
+/* CONTACT BUTTONS */
+.contact-btn {
+    border-radius: 8px;
+    padding: 10px 20px;
+}
+
+/* FOOTER */
+footer {
+    background: #f1f1f1;
+}

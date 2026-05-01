@@ -139,5 +139,6 @@ function submitForm() {
             console.error("SIGNUP ERROR:", err);
             alert(err.message);
         });
+        
     }
 }

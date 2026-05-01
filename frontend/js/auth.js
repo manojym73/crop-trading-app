@@ -14,7 +14,7 @@ function getUser() {
 // ===============================
 // 👋 NAVBAR (OPTIONAL)
 // ===============================
-function loadNavbar() {
+function loadNavbar(){
 
     let farmer = localStorage.getItem("farmer_id")
     let salesman = localStorage.getItem("salesman_id")
@@ -23,15 +23,15 @@ function loadNavbar() {
     let html = ""
 
     // ✅ LOGGED IN
-    if (farmer || salesman) {
+    if(farmer || salesman){
         html = `
-            <span>Welcome, ${name || "User"} 👋</span>
+            <span>Welcome👋</span>
             <button onclick="logout()">Logout</button>
         `
     }
 
     // ❌ NOT LOGGED
-    else {
+    else{
         html = `
             <a href="login.html">Sign In</a>
             <a href="login.html">Sign Up</a>
@@ -51,7 +51,7 @@ function goLogin() {
 // ===============================
 // 🚀 FARMER BUTTON
 // ===============================
-function goFarmer() {
+function goFarmer(){
     window.location = "farmer.html"
 }
 
@@ -59,7 +59,7 @@ function goFarmer() {
 // ===============================
 // 🚀 SALESMAN BUTTON
 // ===============================
-function goSalesman() {
+function goSalesman(){
     window.location = "salesman.html"
 }
 
@@ -76,11 +76,11 @@ function logout() {
 // ===============================
 // 🌾 ADD CROP (FARMER ONLY)
 // ===============================
-function handleAddCrop() {
+function handleAddCrop(){
 
     let farmer_id = localStorage.getItem("farmer_id")
 
-    if (!farmer_id) {
+    if(!farmer_id){
         alert("You are not logged in. Please login first.")
         return
     }
@@ -92,11 +92,11 @@ function handleAddCrop() {
 // ===============================
 // 🛒 BUY CROP (SALESMAN ONLY)
 // ===============================
-function handleBuy(crop_id) {
+function handleBuy(crop_id){
 
     let salesman_id = localStorage.getItem("salesman_id")
 
-    if (!salesman_id) {
+    if(!salesman_id){
         alert("You are not logged in. Please login first.")
         return
     }

@@ -12,8 +12,10 @@
    🌍 GLOBAL STYLES
 ================================= */
 body {
+
     font-family: 'Inter', sans-serif;
     margin: 0;
+
     background: #f4f6f9;
     color: #2d2d2d;
     line-height: 1.6;
@@ -277,6 +279,12 @@ input:focus, select:focus {
     font-weight: 500;
 }
 
+/* ===============================
+   🏠 HOME PAGE BACKGROUND
+================================= */
+body.index-page {
+    background: linear-gradient(to right, #f8f9fa, #e9f5ee);
+}
 
 /* ===============================
    🏠 HOME PAGE CENTER
