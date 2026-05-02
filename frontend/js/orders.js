@@ -1,153 +1,168 @@
-// ===============================
-function loadOrders() {
+function getStatusBadge(status) {
+  const normalized = (status || "").toLowerCase();
 
-    fetch(API + "/orders")
-        .then(res => res.json())
-        .then(data => {
-
-            let html = ""
-
-            if (data.orders.length === 0) {
-                html = "<p>No orders available</p>"
-            }
-
-            data.orders.forEach(order => {
-
-                let badgeClass = "bg-warning"
-
-                if (order.status === "Approved") {
-                    badgeClass = "bg-success"
-                }
-                else if (order.status === "Rejected") {
-                    badgeClass = "bg-danger"
-                }
-
-                html += `
-<div class="card">
-
-<h3>${order.crop_name}</h3>
-
-<p><b>Farmer:</b> ${order.farmer_name}</p>
-<p><b>Salesman:</b> ${order.salesman_name}</p>
-
-<p><b>Quantity:</b> ${order.quantity} kg</p>
-
-<p><b>Price:</b> ₹${order.price} / kg</p>
-
-<p><b>Total:</b> ₹${order.quantity * order.price}</p>
-
-<p>Status: <span class="badge ${badgeClass}">${order.status}</span></p>
-`
-
-                // ✅ show contact AFTER approval
-                if (order.status === "Approved") {
-                    html += `<p>📞 Contact: ${order.salesman_phone}</p>`
-                }
-
-                // ✅ only show buttons if pending
-                if (order.status === "Pending") {
-                    html += `
-<button onclick="updateOrder(${order.order_id}, 'Approved')">Approve</button>
-<button onclick="updateOrder(${order.order_id}, 'Rejected')">Reject</button>
-`
-                }
-
-                html += `</div>`
-            })
-
-            document.getElementById("orders-list").innerHTML = html
-        })
+  if (normalized === "accepted") return "bg-success";
+  if (normalized === "rejected") return "bg-danger";
+  return "bg-warning text-dark";
 }
 
-// ===============================
-// UPDATE ORDER STATUS
-// ===============================
+async function parseResponse(res) {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Server returned invalid response: ${text.slice(0, 120)}`);
+  }
+}
 
-function updateOrder(order_id, status) {
+async function loadOrders() {
+  const container = document.getElementById("orders-list");
+  if (!container) return;
 
-    fetch(API + "/update_order_status", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ order_id, status })
-    })
-        .then(res => {
-            // handle non-OK responses
-            if (!res.ok) {
-                return res.json().then(err => {
-                    throw new Error(err.message || "Server error")
-                })
-            }
-            return res.json()
-        })
-        .then(data => {
-            alert(data.message)
+  container.innerHTML = `<p class="text-center text-muted">Loading orders...</p>`;
 
-            loadFarmerOrders()   // ✅ only this
+  try {
+    const res = await fetch(`${API}/orders`);
+    const data = await parseResponse(res);
 
-            // ❌ REMOVE THIS LINE
-            // loadCrops()
-        })
-        .catch(err => {
-            alert(err.message || "Something went wrong")
-        })
+    if (!res.ok) throw new Error(data.message || "Failed to load orders");
+
+    if (!data.orders || data.orders.length === 0) {
+      container.innerHTML = `<p class="text-center text-muted">No orders available</p>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="row g-4">
+        ${data.orders.map(order => {
+      const badgeClass = getStatusBadge(order.status);
+      const total = Number(order.quantity || 0) * Number(order.price || 0);
+
+      return `
+            <div class="col-lg-4 col-md-6" data-aos="fade-up">
+              <div class="card p-3 border-0 shadow-lg h-100 order-card glass-card">
+                <h5 class="fw-bold mb-3">${order.crop_name || "Crop"}</h5>
+                <p class="mb-1"><b>Farmer:</b> ${order.farmer_name || "N/A"}</p>
+                <p class="mb-1"><b>Salesman:</b> ${order.salesman_name || "N/A"}</p>
+                <p class="mb-1"><b>Quantity:</b> ${order.quantity || 0} kg</p>
+                <p class="mb-1"><b>Price:</b> ₹${order.price || 0}/kg</p>
+                <p class="mb-1"><b>Total:</b> ₹${total}</p>
+                <p class="mb-0"><b>Status:</b> <span class="badge ${badgeClass}">${order.status || "pending"}</span></p>
+              </div>
+            </div>
+          `;
+    }).join("")}
+      </div>
+    `;
+  } catch (err) {
+    console.error("Load all orders error:", err);
+    container.innerHTML = `<p class="text-danger text-center">${err.message}</p>`;
+  }
 }
 
 
-// ===============================
-// LOAD ORDERS FOR SPECIFIC SALESMAN
-// ===============================
-function loadSalesmanOrders() {
+async function loadSalesmanOrders() {
+  const salesmanId = localStorage.getItem("salesmanid");
+  const container = document.getElementById("orders-list");
 
-    let salesman_id = localStorage.getItem("salesman_id")
+  if (!container) return;
 
-    fetch(API + "/salesman_orders/" + salesman_id)
-        .then(res => res.json())
-        .then(data => {
+  if (!salesmanId) {
+    container.innerHTML = `<p class="text-center text-danger">Please login as Salesman</p>`;
+    return;
+  }
 
-            let html = ""
+  container.innerHTML = `<p class="text-center text-muted">Loading orders...</p>`;
 
-            if (data.orders.length === 0) {
-                html = "<p>No orders yet</p>"
-            }
+  try {
+    const res = await fetch(`${API}/orders`);
+    const text = await res.text();
 
-            data.orders.forEach(order => {
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error("Backend returned HTML instead of JSON");
+    }
 
-                html += `
-<div class="card">
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to load orders");
+    }
 
-<h3>${order.crop_name}</h3>
+    const allOrders = Array.isArray(data.orders) ? data.orders : [];
 
-<p><b>Farmer:</b> ${order.farmer_name}</p>
+    const myOrders = allOrders.filter(order =>
+      String(order.salesmanid || order.salesman_id || order.salesmanId) === String(salesmanId)
+    );
 
-<p><b>Quantity:</b> ${order.quantity} kg</p>
+    console.log("ALL ORDERS:", allOrders);
+    console.log("LOGGED SALESMAN ID:", salesmanId);
+    console.log("MATCHED SALESMAN ORDERS:", myOrders);
 
-<p><b>Status:</b> ${order.status}</p>
-`
+    if (myOrders.length === 0) {
+      container.innerHTML = `<p class="text-center text-muted">No orders yet</p>`;
+      return;
+    }
 
-                // ✅ show farmer contact after approval
-                if (order.status === "Approved") {
-                    html += `<p>📞 Farmer: ${order.farmer_phone}</p>`
-                }
+    let html = `<div class="row g-4">`;
 
-                html += `</div>`
-            })
+    myOrders.forEach(order => {
+      const cropName = order.cropname || order.crop_name || "Unknown Crop";
+      const farmerName = order.farmername || order.farmer_name || "N/A";
+      const farmerPhone = order.farmerphone || order.farmer_phone || "N/A";
+      const quantity = Number(order.quantity || 0);
+      const price = Number(order.price || 0);
+      const total = quantity * price;
+      const status = String(order.status || "pending").toLowerCase();
 
-            document.getElementById("orders-list").innerHTML = html
-        })
+      const badgeClass =
+        status === "accepted" || status === "approved"
+          ? "bg-success"
+          : status === "rejected"
+            ? "bg-danger"
+            : "bg-warning text-dark";
+
+      html += `
+        <div class="col-md-4">
+          <div class="card p-3 shadow-sm h-100 order-card">
+            <h5 class="fw-bold mb-3">${cropName}</h5>
+            <p class="mb-1"><b>Farmer:</b> ${farmerName}</p>
+            <p class="mb-1"><b>Quantity:</b> ${quantity} kg</p>
+            <p class="mb-1"><b>Price:</b> ${price}/kg</p>
+            <p class="mb-1"><b>Total:</b> ${total}</p>
+            <p class="mb-1"><b>Status:</b> <span class="badge ${badgeClass}">${status}</span></p>
+            ${status === "accepted" || status === "approved"
+          ? `<p class="mb-0"><b>Farmer Phone:</b> ${farmerPhone}</p>`
+          : ``
+        }
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
+
+  } catch (err) {
+    console.error("Salesman orders error:", err);
+    container.innerHTML = `<p class="text-danger text-center">${err.message}</p>`;
+  }
 }
 
-// Show salesman orders section
 function showOrders() {
-    document.getElementById("orders-section").style.display = "block";
-    document.getElementById("crop-list").style.display = "none";
+  const ordersSection = document.getElementById("orders-section");
+  const cropList = document.getElementById("market-section");
 
-    loadOrders();
+  if (ordersSection) ordersSection.style.display = "block";
+  if (cropList) cropList.style.display = "none";
+
+  loadSalesmanOrders();
 }
 
-// Go back to crop marketplace
 function goBackToMarket() {
-    document.getElementById("orders-section").style.display = "none";
-    document.getElementById("crop-list").style.display = "flex";
+  const ordersSection = document.getElementById("orders-section");
+  const cropList = document.getElementById("market-section");
+
+  if (ordersSection) ordersSection.style.display = "none";
+  if (cropList) cropList.style.display = "block";
 }

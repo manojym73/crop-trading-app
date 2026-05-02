@@ -1,312 +1,279 @@
-
-// ===============================
-// SEARCH CROPS
-// ===============================
-function searchCrops() {
-
-    let cropName = document.getElementById("searchCrop").value.toLowerCase()
-    let location = document.getElementById("searchLocation").value.toLowerCase()
-
-    fetch(API + "/crops")
-        .then(res => res.json())
-        .then(data => {
-
-            let html = ""
-
-            data.crops.forEach(crop => {
-
-                if (
-                    crop.crop_name.toLowerCase().includes(cropName) &&
-                    crop.location.toLowerCase().includes(location)
-                ) {
-
-                    html += getCropCard(crop)
-                }
-
-            })
-
-            document.getElementById("crop-list").innerHTML = html
-        })
+function getCropImage(imageName) {
+  if (!imageName) {
+    return "https://via.placeholder.com/600x350?text=No+Image";
+  }
+  return `${API}/uploads/${imageName}`;
 }
 
-
-// ===============================
-// LOAD CROPS
-// ===============================
-function loadCrops() {
-
-    fetch(API + "/crops")
-        .then(res => res.json())
-        .then(data => {
-
-            let html = ""
-
-            // ✅ if no crops
-            if (!data.crops || data.crops.length === 0) {
-                html = "<p>No crops available</p>"
-            }
-
-            data.crops.forEach(crop => {
-
-                // ✅ safe values
-                let quantity = crop.quantity || 0
-                let price = crop.price || 0
-                let image = crop.image || ""
-
-                // ❌ skip if no stock (optional)
-                if (quantity <= 0) return
-
-                html += `
-<div class="col-md-4">
-    <div class="card p-3 shadow-sm crop-card">
-
-        <img src="${API}/uploads/${crop.image}" class="img-fluid mb-2">
-
-        <h5>${crop.crop_name}</h5>
-
-        <p><b>Farmer:</b> ${crop.farmer_name}</p>
-        <p><b>Price:</b> ₹${crop.price}/kg</p>
-        <p><b>Available:</b> ${crop.quantity} kg</p>
-        <p><b>Location:</b> ${crop.location}</p>
-
-        <input type="number" class="form-control mb-2" placeholder="Enter quantity (kg)">
-
-        <button class="btn btn-success w-100">
-            Buy Crop
-        </button>
-
-    </div>
-</div>
-`
-            })
-
-            // ✅ SAFE UPDATE (NO ERROR)
-            let container = document.getElementById("crop-list")
-            if (container) {
-                container.innerHTML = html
-            }
-
-        })
-        .catch(err => {
-            console.error("Load crops error:", err)
-        })
-}
-
-// ===============================
-// COMMON CARD TEMPLATE (REUSE)
-// ===============================
 function getCropCard(crop) {
+  const quantity = Number(crop.quantity || 0);
+  const price = Number(crop.price || 0);
+  const imageUrl = getCropImage(crop.image);
 
-    return `
-<div class="col-md-4">
+  return `
+    <div class="col-lg-4 col-md-6" data-aos="fade-up">
+      <div class="card border-0 shadow-lg h-100 crop-card glass-card overflow-hidden">
+        <div class="crop-image-wrap">
+          <img
+            src="${imageUrl}"
+            class="card-img-top"
+            alt="${crop.crop_name || "Crop"}"
+            style="height: 220px; object-fit: cover;"
+            onerror="this.src='https://via.placeholder.com/600x350?text=No+Image'"
+          />
+          <div class="crop-overlay"></div>
+        </div>
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title fw-bold mb-2">${crop.crop_name || "Crop"}</h5>
+          <p class="card-text mb-1"><b>Farmer:</b> ${crop.farmer_name || "N/A"}</p>
+          <p class="card-text mb-1"><b>Price:</b> ₹${price}/kg</p>
+          <p class="card-text mb-1"><b>Available:</b> ${quantity} kg</p>
+          <p class="card-text mb-3"><b>Location:</b> ${crop.location || "N/A"}</p>
 
-<div class="card shadow-sm">
+          <input
+            id="qty-${crop.crop_id}"
+            type="number"
+            min="1"
+            max="${quantity}"
+            class="form-control modern-input mb-3"
+            placeholder="Enter quantity (kg)"
+          />
 
-<img src="http://127.0.0.1:5000/uploads/${crop.image}"
-class="card-img-top" style="height:200px; object-fit:cover;">
-
-<div class="card-body">
-
-<h5 class="card-title">${crop.crop_name}</h5>
-
-<p class="card-text">
-<b>Farmer:</b> ${crop.farmer_name}<br>
-<b>Price:</b> ₹${crop.price}/kg<br>
-<b>Available:</b> ${crop.quantity} kg<br>
-<b>Location:</b> ${crop.location}
-</p>
-
-<input id="qty-${crop.crop_id}" 
-class="form-control mb-2" 
-placeholder="Enter quantity (kg)">
-
-<button class="btn btn-success w-100"
-onclick="handleBuy(${crop.crop_id})">
-Buy Crop
-</button>
-
-</div>
-</div>
-
-</div>
-`
+          <button
+            class="btn btn-success btn-glow w-100 mt-auto"
+            onclick="handleBuy(${crop.crop_id})"
+            ${quantity <= 0 ? "disabled" : ""}
+          >
+            ${quantity > 0 ? "Buy Crop" : "Out of Stock"}
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
+function renderCrops(crops) {
+  const container = document.getElementById("crop-list");
+  if (!container) return;
 
-// ===============================
-// ADD CROP
-// ===============================
-function addCrop() {
+  const availableCrops = (crops || []).filter(crop => Number(crop.quantity || 0) > 0);
 
-    let farmer_id = localStorage.getItem("farmer_id")
+  if (availableCrops.length === 0) {
+    container.innerHTML = `<p class="text-center text-muted fs-5">No crops available</p>`;
+    return;
+  }
 
-    if (!farmer_id) {
-        alert("Please login first")
-        return
-    }
-
-    let formData = new FormData()
-
-    formData.append("farmer_id", farmer_id)
-    formData.append("crop_name", document.getElementById("crop_name").value)
-    formData.append("quantity", document.getElementById("quantity").value)
-    formData.append("price", document.getElementById("price").value)
-    formData.append("location", document.getElementById("location").value)
-
-    let imageFile = document.getElementById("image").files[0]
-
-    if (imageFile) {
-        formData.append("image", imageFile)
-    }
-
-    fetch(API + "/add_crop", {
-        method: "POST",
-        body: formData
-    })
-        .then(res => res.json())
-        .then(data => {
-
-            if (data.error) {
-                alert(data.error)
-                return
-            }
-
-            alert(data.message)
-
-            loadCrops()   // refresh crops
-        })
-        .catch(err => {
-            console.error("ADD CROP ERROR:", err)
-            alert("Failed to add crop")
-        })
+  container.innerHTML = availableCrops.map(getCropCard).join("");
 }
 
+async function loadCrops() {
+  const container = document.getElementById("crop-list");
+  if (!container) return;
 
-// ===============================
-// PLACE ORDER
-// ===============================
-function placeOrder(crop_id) {
+  container.innerHTML = `<p class="text-center text-muted">Loading crops...</p>`;
 
-    let salesman_id = localStorage.getItem("salesman_id")
-    let quantity = document.getElementById(`qty-${crop_id}`).value
+  try {
+    const res = await fetch(`${API}/crops`);
+    const data = await res.json();
 
-    // ✅ validation
-    if (!salesman_id) {
-        alert("Please login first")
-        return
-    }
-
-    if (!quantity || quantity <= 0) {
-        alert("Enter valid quantity")
-        return
-    }
-
-    fetch(API + "/place_order", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            salesman_id: salesman_id,
-            crop_id: crop_id,
-            quantity: quantity
-        })
-    })
-        .then(res => {
-            if (!res.ok) {
-                return res.json().then(err => {
-                    throw new Error(err.message || "Order failed")
-                })
-            }
-            return res.json()
-        })
-        .then(data => {
-            alert(data.message)
-            loadCrops()
-        })
-        .catch(err => {
-            console.error("ORDER ERROR:", err)
-            alert(err.message)
-        })
+    if (!res.ok) throw new Error(data.message || "Failed to load crops");
+    renderCrops(data.crops || []);
+  } catch (err) {
+    console.error("Load crops error:", err);
+    container.innerHTML = `<p class="text-danger text-center">${err.message || "Failed to load crops"}</p>`;
+  }
 }
 
+async function searchCrops() {
+  const cropName = document.getElementById("searchCrop")?.value?.toLowerCase().trim() || "";
+  const location = document.getElementById("searchLocation")?.value?.toLowerCase().trim() || "";
+  const container = document.getElementById("crop-list");
+  if (!container) return;
 
-// ===============================
-// STATS
-// ===============================
-function loadStats() {
+  try {
+    const res = await fetch(`${API}/crops`);
+    const data = await res.json();
 
-    fetch(API + "/stats")
-        .then(res => res.json())
-        .then(data => {
+    if (!res.ok) throw new Error(data.message || "Failed to search crops");
 
-            document.getElementById("totalCrops").innerText = data.total_crops
-            document.getElementById("totalOrders").innerText = data.total_orders
-            document.getElementById("totalFarmers").innerText = data.total_farmers
-            document.getElementById("totalSalesmen").innerText = data.total_salesmen
-
-        })
-}
-
-// ===============================
-// LOAD MY CROPS
-// ===============================   
-function loadMyCrops() {
-
-    let farmer_id = Number(localStorage.getItem("farmer_id"));
-
-    console.log("Logged farmer:", farmer_id);
-
-    fetch(API + "/crops")
-    .then(res => res.json())
-    .then(data => {
-
-        console.log("CROPS DATA:", data);
-
-        let container = document.getElementById("my-crops");
-
-        if (!data.crops || data.crops.length === 0) {
-            container.innerHTML = "<p>No crops available</p>";
-            return;
-        }
-
-        // ✅ FILTER BY farmer_id
-        let myCrops = data.crops.filter(crop => 
-            crop.farmer_id === farmer_id
-        );
-
-        console.log("FILTERED CROPS:", myCrops);
-
-        if (myCrops.length === 0) {
-            container.innerHTML = "<p>No crops added yet</p>";
-            return;
-        }
-
-        let html = "";
-
-        myCrops.forEach(crop => {
-
-            html += `
-            <div class="col-md-4">
-                <div class="card p-3 shadow-sm crop-card">
-
- 
-
-                    <h5>${crop.crop_name}</h5>
-
-                    <p><b>Quantity:</b> ${crop.quantity} kg</p>
-                    <p><b>Price:</b> ₹${crop.price}/kg</p>
-                    <p><b>Location:</b> ${crop.location}</p>
-
-                </div>
-            </div>
-            `;
-        });
-
-        container.innerHTML = html;
-
-    })
-    .catch(err => {
-        console.error("ERROR:", err);
+    const filtered = (data.crops || []).filter((crop) => {
+      const cropMatch = (crop.crop_name || "").toLowerCase().includes(cropName);
+      const locationMatch = (crop.location || "").toLowerCase().includes(location);
+      return cropMatch && locationMatch;
     });
+
+    renderCrops(filtered);
+  } catch (err) {
+    console.error("Search crops error:", err);
+    container.innerHTML = `<p class="text-danger text-center">${err.message || "Failed to search crops"}</p>`;
+  }
+}
+
+async function addCrop() {
+  const farmerId = localStorage.getItem("farmerid");
+
+  if (!farmerId) {
+    showNotification("Please login as Farmer first", "warning");
+    window.location.href = "login.html";
+    return;
+  }
+
+  const cropName = document.getElementById("cropname")?.value?.trim();
+  const quantity = document.getElementById("quantity")?.value?.trim();
+  const price = document.getElementById("price")?.value?.trim();
+  const location = document.getElementById("location")?.value?.trim();
+  const imageFile = document.getElementById("image")?.files?.[0];
+
+  if (!cropName || !quantity || !price || !location) {
+    showNotification("Please fill all crop fields", "warning");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("farmer_id", farmerId);
+  formData.append("crop_name", cropName);
+  formData.append("quantity", quantity);
+  formData.append("price", price);
+  formData.append("location", location);
+
+  if (imageFile) {
+    formData.append("image", imageFile);
+  }
+
+  try {
+    const res = await fetch(`${API}/add_crop`, {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Failed to add crop");
+
+    showNotification(data.message || "Crop added successfully", "success");
+
+    document.getElementById("cropname").value = "";
+    document.getElementById("quantity").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("location").value = "";
+    document.getElementById("image").value = "";
+
+    loadMyCrops();
+    loadStats();
+  } catch (err) {
+    console.error("Add crop error:", err);
+    showNotification(err.message || "Failed to add crop", "danger");
+  }
+}
+
+async function placeOrder(cropId) {
+  const salesmanId = localStorage.getItem("salesmanid");
+  const qtyInput = document.getElementById(`qty-${cropId}`);
+  const quantity = qtyInput ? qtyInput.value.trim() : "";
+
+  if (!salesmanId) {
+    showNotification("Please login as Salesman first", "warning");
+    window.location.href = "login.html";
+    return;
+  }
+
+  if (!quantity || Number(quantity) <= 0) {
+    showNotification("Enter a valid quantity", "warning");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/place_order`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        salesman_id: Number(salesmanId),
+        crop_id: Number(cropId),
+        quantity: Number(quantity)
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Order failed");
+
+    showNotification(data.message || "Order placed successfully", "success");
+    loadCrops();
+    loadStats();
+  } catch (err) {
+    console.error("Order error:", err);
+    showNotification(err.message || "Failed to place order", "danger");
+  }
+}
+
+async function loadMyCrops() {
+  const farmerId = Number(localStorage.getItem("farmerid"));
+  const container = document.getElementById("my-crops");
+
+  if (!container) return;
+
+  if (!farmerId) {
+    container.innerHTML = `<p class="text-muted">Please login as Farmer</p>`;
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/crops`);
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Failed to load crops");
+
+    const myCrops = (data.crops || []).filter(crop => Number(crop.farmer_id) === farmerId);
+
+    if (myCrops.length === 0) {
+      container.innerHTML = `<p class="text-center text-muted">No crops added yet</p>`;
+      return;
+    }
+
+    container.innerHTML = myCrops.map((crop) => `
+      <div class="col-lg-4 col-md-6" data-aos="fade-up">
+        <div class="card border-0 shadow-lg crop-card h-100 glass-card">
+          <img
+            src="${getCropImage(crop.image)}"
+            class="card-img-top"
+            alt="${crop.crop_name || "Crop"}"
+            style="height: 220px; object-fit: cover;"
+            onerror="this.src='https://via.placeholder.com/600x350?text=No+Image'"
+          />
+          <div class="card-body">
+            <h5 class="fw-bold">${crop.crop_name || "Crop"}</h5>
+            <p class="mb-1"><b>Quantity:</b> ${crop.quantity || 0} kg</p>
+            <p class="mb-1"><b>Price:</b> ₹${crop.price || 0}/kg</p>
+            <p class="mb-0"><b>Location:</b> ${crop.location || "N/A"}</p>
+          </div>
+        </div>
+      </div>
+    `).join("");
+  } catch (err) {
+    console.error("Load my crops error:", err);
+    container.innerHTML = `<p class="text-danger text-center">${err.message || "Failed to load crops"}</p>`;
+  }
+}
+
+async function loadStats() {
+  try {
+    const res = await fetch(`${API}/stats`);
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Failed to load stats");
+
+    const totalCrops = document.getElementById("totalCrops");
+    const totalOrders = document.getElementById("totalOrders");
+    const totalFarmers = document.getElementById("totalFarmers");
+    const totalSalesmen = document.getElementById("totalSalesmen");
+
+    if (totalCrops) totalCrops.innerText = data.total_crops || 0;
+    if (totalOrders) totalOrders.innerText = data.total_orders || 0;
+    if (totalFarmers) totalFarmers.innerText = data.total_farmers || 0;
+    if (totalSalesmen) totalSalesmen.innerText = data.total_salesmen || 0;
+  } catch (err) {
+    console.error("Stats error:", err);
+  }
 }

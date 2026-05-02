@@ -1,10 +1,10 @@
+import os
 import mysql.connector
 
 def get_connection():
-    connection = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="yajithBM@966310",   # use the password you created
-        database="crop_trading"
+    return mysql.connector.connect(
+        host=os.getenv("DB_HOST", "localhost"),
+        user=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASSWORD", "yajithBM@966310"),
+        database=os.getenv("DB_NAME", "crop_trading")
     )
-    return connection

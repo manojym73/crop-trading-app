@@ -1,38 +1,67 @@
-function loadCropChart() {
+let cropChartInstance = null;
 
-    fetch(API + "/crops")
+async function loadCropChart() {
+  const canvas = document.getElementById("cropChart");
+  if (!canvas) return;
 
-        .then(res => res.json())
+  try {
+    const res = await fetch(`${API}/crops`);
+    const data = await res.json();
 
-        .then(data => {
+    if (!res.ok) throw new Error(data.message || "Failed to load chart data");
 
-            let labels = []
-            let quantities = []
+    const labels = [];
+    const quantities = [];
 
-            data.crops.forEach(crop => {
+    (data.crops || []).forEach(crop => {
+      labels.push(crop.crop_name);
+      quantities.push(Number(crop.quantity || 0));
+    });
 
-                labels.push(crop.crop_name)
-                quantities.push(crop.quantity)
+    if (cropChartInstance) {
+      cropChartInstance.destroy();
+    }
 
-            })
-
-            const ctx = document.getElementById("cropChart");
-
-            new Chart(ctx, {
-
-                type: "bar",
-
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: "Available Quantity",
-                        data: quantities,
-                        backgroundColor: "#2c7a4b"
-                    }]
-                }
-
-            })
-
-        })
-
+    cropChartInstance = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          label: "Available Quantity (kg)",
+          data: quantities,
+          backgroundColor: [
+            "#198754", "#20c997", "#0dcaf0", "#ffc107", "#fd7e14", "#6f42c1"
+          ],
+          borderRadius: 12,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: {
+              color: "#1f2937"
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: "#374151" },
+            grid: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: "#374151" }
+          }
+        },
+        animation: {
+          duration: 1200,
+          easing: "easeOutQuart"
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Chart error:", error);
+  }
 }

@@ -1,169 +1,101 @@
-// ===============================
-// 🔐 AUTH + USER HELPERS
-// ===============================
-
 function getUser() {
-    return {
-        farmer: localStorage.getItem("farmer_id"),
-        salesman: localStorage.getItem("salesman_id"),
-        name: localStorage.getItem("name"),
-        email: localStorage.getItem("email"),
-        phone: localStorage.getItem("phone")
-    };
+  const farmerId = localStorage.getItem("farmerid");
+  const salesmanId = localStorage.getItem("salesmanid");
+  const role = localStorage.getItem("role") || (farmerId ? "farmer" : salesmanId ? "salesman" : "");
+
+  return {
+    farmerId,
+    salesmanId,
+    id: farmerId || salesmanId || "",
+    role,
+    name: localStorage.getItem("name") || "",
+    email: localStorage.getItem("email") || "",
+    phone: localStorage.getItem("phone") || ""
+  };
 }
 
-// ===============================
-// 🚪 LOGOUT
-// ===============================
-function logout() {
-    localStorage.clear();
-    window.location = "index.html";
+function isLoggedIn() {
+  return !!getUser().role;
 }
 
-// ===============================
-// 🧑‍💼 NAVBAR (ALL PAGES)
-// ===============================
-function loadNavbar() {
-
-    let nav = document.getElementById("nav-right");
-
-    let farmer = localStorage.getItem("farmer_id");
-    let salesman = localStorage.getItem("salesman_id");
-    let name = localStorage.getItem("name");
-    let email = localStorage.getItem("email");
-    let phone = localStorage.getItem("phone");
-
-    // ❌ NOT LOGGED
-    if (!farmer && !salesman) {
-        nav.innerHTML = `
-            <a href="login.html" class="btn btn-light">Sign In</a>
-            <a href="login.html" class="btn btn-outline-light">Sign Up</a>
-        `;
-        return;
-    }
-
-    // ✅ LOGGED
-    nav.innerHTML = `
-        <div class="dropdown">
-            <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
-                👤 ${name}
-            </button>
-
-            <ul class="dropdown-menu dropdown-menu-end p-3 shadow">
-
-                <li><strong>${name}</strong></li>
-                <li class="text-muted small">${email}</li>
-                <li class="text-muted small">${phone}</li>
-
-                <hr>
-
-                <li>
-                    <button class="btn btn-danger w-100" onclick="logout()">Logout</button>
-                </li>
-
-            </ul>
-        </div>
-    `;
+function clearSession() {
+  localStorage.removeItem("farmerid");
+  localStorage.removeItem("salesmanid");
+  localStorage.removeItem("name");
+  localStorage.removeItem("email");
+  localStorage.removeItem("phone");
+  localStorage.removeItem("role");
 }
 
 function logout() {
-    localStorage.clear();
-    window.location = "index.html";
+  clearSession();
+  window.location.href = "index.html";
 }
 
-// ===============================
-// 🚀 NAVIGATION WITH ROLE CHECK
-// ===============================
+function checkFarmer() {
+  const user = getUser();
+  if (user.role !== "farmer") {
+    showNotification("Please login as Farmer", "warning");
+    window.location.href = "login.html";
+    return false;
+  }
+  return true;
+}
+
+function checkSalesman() {
+  const user = getUser();
+  if (user.role !== "salesman") {
+    showNotification("Please login as Salesman", "warning");
+    window.location.href = "login.html";
+    return false;
+  }
+  return true;
+}
+
 function goFarmer() {
-
-    let farmer = localStorage.getItem("farmer_id");
-    let salesman = localStorage.getItem("salesman_id");
-
-    // ✅ If not logged in → go to login
-    if (!farmer && !salesman) {
-        window.location = "login.html";
-        return;
-    }
-
-    // ❌ If wrong role
-    if (salesman) {
-        alert("❌ You are logged in as Salesman");
-        return;
-    }
-
-    // ✅ Correct role
-    window.location = "farmer.html";
+  const user = getUser();
+  if (!user.role) {
+    window.location.href = "login.html";
+    return;
+  }
+  if (user.role !== "farmer") {
+    showNotification("You are logged in as Salesman", "warning");
+    return;
+  }
+  window.location.href = "farmer.html";
 }
 
 function goSalesman() {
-
-    let farmer = localStorage.getItem("farmer_id");
-    let salesman = localStorage.getItem("salesman_id");
-
-    // ✅ If not logged in → go to login
-    if (!farmer && !salesman) {
-        window.location = "login.html";
-        return;
-    }
-
-    // ❌ If wrong role
-    if (farmer) {
-        alert("❌ You are logged in as Farmer");
-        return;
-    }
-
-    // ✅ Correct role
-    window.location = "salesman.html";
+  const user = getUser();
+  if (!user.role) {
+    window.location.href = "login.html";
+    return;
+  }
+  if (user.role !== "salesman") {
+    showNotification("You are logged in as Farmer", "warning");
+    return;
+  }
+  window.location.href = "salesman.html";
 }
 
-// ===============================
-// 🌾 FARMER ACTION
-// ===============================
+function goHomeSmart(event) {
+  if (event) event.preventDefault();
+  const user = getUser();
+
+  if (!user.role) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  window.location.href = user.role === "farmer" ? "farmer.html" : "salesman.html";
+}
+
 function handleAddCrop() {
-    let user = getUser();
-
-    if (!user.farmer) {
-        alert("Login as Farmer first");
-        return;
-    }
-
-    addCrop();
+  if (!checkFarmer()) return;
+  if (typeof addCrop === "function") addCrop();
 }
 
-// ===============================
-// 🛒 SALESMAN ACTION
-// ===============================
-function handleBuy(crop_id) {
-    let user = getUser();
-
-    if (!user.salesman) {
-        alert("Login as Salesman first");
-        return;
-    }
-
-    placeOrder(crop_id);
-}
-
-// ===============================
-// 🏠 SMART HOME REDIRECTION
-// ===============================
-function goSalesman() {
-
-    let farmer = localStorage.getItem("farmer_id");
-    let salesman = localStorage.getItem("salesman_id");
-
-    // ✅ If not logged in → go to login
-    if (!farmer && !salesman) {
-        window.location = "login.html";
-        return;
-    }
-
-    // ❌ If wrong role
-    if (farmer) {
-        alert("❌ You are logged in as Farmer");
-        return;
-    }
-
-    // ✅ Correct role
-    window.location = "salesman.html";
+function handleBuy(cropId) {
+  if (!checkSalesman()) return;
+  if (typeof placeOrder === "function") placeOrder(cropId);
 }

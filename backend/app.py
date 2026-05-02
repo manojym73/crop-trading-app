@@ -1,485 +1,595 @@
-# ===============================
-# IMPORTS
-# ===============================
+import os
+import uuid
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from werkzeug.utils import secure_filename   # ✅ ADD THIS
+from werkzeug.utils import secure_filename
 from database import get_connection
-import os
 
 app = Flask(__name__)
-
-# ✅ MUST BE AFTER app creation
 CORS(app)
 
-UPLOAD_FOLDER = "uploads"
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @app.route("/")
 def home():
-    return "Crop Trading API Running"
+    return jsonify({"message": "Crop Trading API Running"})
 
 
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+@app.route("/uploads/<path:filename>")
+def uploaded_file(filename):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
-# ---------------------------
-# Register Farmer
-# ---------------------------
+
 @app.route("/register_farmer", methods=["POST"])
 def register_farmer():
-
+    conn = None
+    cursor = None
     try:
-        data = request.json
+        data = request.get_json() or {}
 
-        name = data.get("name")
-        email = data.get("email")
-        password = data.get("password")
-        phone = data.get("phone")
+        name = data.get("name", "").strip()
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "").strip()
+        phone = data.get("phone", "").strip()
 
-        # ✅ validation
         if not name or not email or not password or not phone:
-            return jsonify({"message": "All fields required"}), 400
+            return jsonify({"message": "All fields are required"}), 400
 
         conn = get_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
 
-        cursor.execute("""
+        cursor.execute("SELECT farmer_id FROM farmers WHERE email = %s", (email,))
+        if cursor.fetchone():
+            return jsonify({"message": "Farmer email already registered"}), 409
+
+        cursor.execute(
+            """
             INSERT INTO farmers (name, email, password, phone)
             VALUES (%s, %s, %s, %s)
-        """, (name, email, password, phone))
-
+            """,
+            (name, email, password, phone),
+        )
         conn.commit()
 
-        cursor.close()
-        conn.close()
-
-        return jsonify({"message": "Farmer registered successfully"})
+        return jsonify({"message": "Farmer registered successfully"}), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
-# Salesman Register API
+
 @app.route("/register_salesman", methods=["POST"])
 def register_salesman():
-
+    conn = None
+    cursor = None
     try:
-        data = request.json
+        data = request.get_json() or {}
 
-        name = data.get("name")
-        email = data.get("email")
-        password = data.get("password")
-        phone = data.get("phone")
+        name = data.get("name", "").strip()
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "").strip()
+        phone = data.get("phone", "").strip()
 
         if not name or not email or not password or not phone:
-            return jsonify({"message": "All fields required"}), 400
+            return jsonify({"message": "All fields are required"}), 400
 
         conn = get_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
 
-        cursor.execute("""
+        cursor.execute("SELECT salesman_id FROM salesmen WHERE email = %s", (email,))
+        if cursor.fetchone():
+            return jsonify({"message": "Salesman email already registered"}), 409
+
+        cursor.execute(
+            """
             INSERT INTO salesmen (name, email, password, phone)
             VALUES (%s, %s, %s, %s)
-        """, (name, email, password, phone))
-
+            """,
+            (name, email, password, phone),
+        )
         conn.commit()
 
-        cursor.close()
-        conn.close()
-
-        return jsonify({"message": "Salesman registered successfully"})
+        return jsonify({"message": "Salesman registered successfully"}), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
-# Login API (Both Farmer & Salesman)
+        return jsonify({"message": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
 @app.route("/login", methods=["POST"])
 def login():
+    conn = None
+    cursor = None
+    try:
+        data = request.get_json() or {}
+        email = data.get("email", "").strip().lower()
+        password = data.get("password", "").strip()
 
-    data = request.json
+        if not email or not password:
+            return jsonify({"message": "Email and password are required"}), 400
 
-    email = data.get("email")
-    password = data.get("password")
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
 
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT farmer_id, name, email, phone FROM farmers WHERE email = %s AND password = %s",
+            (email, password),
+        )
+        farmer = cursor.fetchone()
 
-    # ===== FARMER =====
-    cursor.execute(
-        "SELECT * FROM farmers WHERE email=%s AND password=%s",
-        (email, password)
-    )
-    farmer = cursor.fetchone()
+        if farmer:
+            return jsonify({
+                "role": "farmer",
+                "id": farmer["farmer_id"],
+                "name": farmer["name"],
+                "email": farmer["email"],
+                "phone": farmer["phone"]
+            }), 200
 
-    if farmer:
-        cursor.close()
-        conn.close()
+        cursor.execute(
+            "SELECT salesman_id, name, email, phone FROM salesmen WHERE email = %s AND password = %s",
+            (email, password),
+        )
+        salesman = cursor.fetchone()
 
-        return jsonify({
-            "role": "farmer",
-            "id": farmer["farmer_id"],
-            "name": farmer["name"],
-            "email": farmer["email"],
-            "phone": farmer["phone"]
-        })
+        if salesman:
+            return jsonify({
+                "role": "salesman",
+                "id": salesman["salesman_id"],
+                "name": salesman["name"],
+                "email": salesman["email"],
+                "phone": salesman["phone"]
+            }), 200
 
-    # ===== SALESMAN =====
-    cursor.execute(
-        "SELECT * FROM salesmen WHERE email=%s AND password=%s",
-        (email, password)
-    )
-    salesman = cursor.fetchone()
+        return jsonify({"message": "Invalid email or password"}), 401
 
-    if salesman:
-        cursor.close()
-        conn.close()
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
-        return jsonify({
-            "role": "salesman",
-            "id": salesman["salesman_id"],
-            "name": salesman["name"],
-            "email": salesman["email"],
-            "phone": salesman["phone"]
-        })
 
-    cursor.close()
-    conn.close()
-
-    return jsonify({"message": "Invalid login"}), 401
-    
-# Add Crop API
 @app.route("/add_crop", methods=["POST"])
 def add_crop():
-
+    conn = None
+    cursor = None
     try:
-        # ===============================
-        # GET FORM DATA
-        # ===============================
-        farmer_id = request.form.get("farmer_id")
-        crop_name = request.form.get("crop_name")
-        quantity = request.form.get("quantity")
-        price = request.form.get("price")
-        location = request.form.get("location")
+        farmer_id = request.form.get("farmer_id", "").strip()
+        crop_name = request.form.get("crop_name", "").strip()
+        quantity = request.form.get("quantity", "").strip()
+        price = request.form.get("price", "").strip()
+        location = request.form.get("location", "").strip()
 
-        # ===============================
-        # VALIDATION
-        # ===============================
-        if not farmer_id or not crop_name or not quantity or not price:
-            return jsonify({"message": "All fields required"}), 400
+        if not farmer_id or not crop_name or not quantity or not price or not location:
+            return jsonify({"message": "All fields are required"}), 400
 
-        # ===============================
-        # IMAGE HANDLING
-        # ===============================
         image = request.files.get("image")
-        filename = ""
+        filename = None
 
-        if image and image.filename != "":
-            filename = secure_filename(image.filename)
+        if image and image.filename:
+          if not allowed_file(image.filename):
+              return jsonify({"message": "Only png, jpg, jpeg, webp images are allowed"}), 400
 
-            # create folder if not exists
-            if not os.path.exists(app.config["UPLOAD_FOLDER"]):
-                os.makedirs(app.config["UPLOAD_FOLDER"])
+          ext = image.filename.rsplit(".", 1)[1].lower()
+          filename = f"{uuid.uuid4().hex}.{ext}"
+          image.save(os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(filename)))
 
-            image_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-            image.save(image_path)
-
-        # ===============================
-        # DATABASE INSERT
-        # ===============================
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO crops (farmer_id, crop_name, quantity, price, location, image)
             VALUES (%s, %s, %s, %s, %s, %s)
-        """, (farmer_id, crop_name, quantity, price, location, filename))
-
+            """,
+            (farmer_id, crop_name, quantity, price, location, filename),
+        )
         conn.commit()
 
-        cursor.close()
-        conn.close()
-
-        return jsonify({"message": "Crop added successfully"})
+        return jsonify({"message": "Crop added successfully"}), 201
 
     except Exception as e:
-        print("ADD CROP ERROR:", e)   # 🔥 VERY IMPORTANT FOR DEBUG
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
-# Serve uploaded images
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-# ---------------------------
-# Get All Crops
-# ---------------------------
-@app.route("/crops")
+@app.route("/crops", methods=["GET"])
 def get_crops():
+    conn = None
+    cursor = None
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
 
-        cursor.execute("""
-            SELECT 
-                crops.*,
-                farmers.name AS farmer_name,
-                crops.farmer_id
-            FROM crops
-            JOIN farmers ON crops.farmer_id = farmers.farmer_id
-        """)
+        cursor.execute(
+            """
+            SELECT
+                c.crop_id,
+                c.farmer_id,
+                c.crop_name,
+                c.quantity,
+                c.price,
+                c.location,
+                c.image,
+                f.name AS farmer_name
+            FROM crops c
+            JOIN farmers f ON c.farmer_id = f.farmer_id
+            ORDER BY c.crop_id DESC
+            """
+        )
 
         crops = cursor.fetchall()
-
-        cursor.close()
-        conn.close()
-
-        return {"crops": crops}
+        return jsonify({"crops": crops}), 200
 
     except Exception as e:
-        print("CROPS ERROR:", e)
-        return {"error": str(e)}, 500
+        return jsonify({"message": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
-# ---------------------------
-# Place Order
-# ---------------------------
+
 @app.route("/place_order", methods=["POST"])
 def place_order():
+    conn = None
+    cursor = None
     try:
-        data = request.json
-
-        salesman_id = data.get("salesman_id")
+        data = request.get_json() or {}
         crop_id = data.get("crop_id")
-        quantity = int(data.get("quantity"))
+        salesman_id = data.get("salesman_id")
+        quantity = data.get("quantity")
+
+        if not crop_id or not salesman_id or not quantity:
+            return jsonify({"message": "crop_id, salesman_id and quantity are required"}), 400
 
         conn = get_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
 
-        # 🔍 Get current quantity
-        cursor.execute("SELECT quantity FROM crops WHERE crop_id=%s", (crop_id,))
+        cursor.execute(
+            """
+            SELECT crop_id, farmer_id, quantity
+            FROM crops
+            WHERE crop_id = %s
+            """,
+            (crop_id,),
+        )
         crop = cursor.fetchone()
 
         if not crop:
             return jsonify({"message": "Crop not found"}), 404
 
-        current_qty = crop[0]
+        if int(quantity) <= 0:
+            return jsonify({"message": "Quantity must be greater than 0"}), 400
 
-        # ❌ Not enough stock
-        if quantity > current_qty:
-            return jsonify({"message": "Not enough stock"}), 400
+        if int(quantity) > int(crop["quantity"]):
+            return jsonify({"message": "Not enough stock available"}), 400
 
-        # ✅ Reduce quantity
-        new_qty = current_qty - quantity
-
-        if new_qty == 0:
-            # delete crop
-            cursor.execute("DELETE FROM crops WHERE crop_id=%s", (crop_id,))
-        else:
-            # update quantity
-            cursor.execute(
-                "UPDATE crops SET quantity=%s WHERE crop_id=%s",
-                (new_qty, crop_id)
-            )
-
-        # ✅ Save order
-        cursor.execute("""
-            INSERT INTO orders (salesman_id, crop_id, quantity, status)
-            VALUES (%s, %s, %s, 'Pending')
-        """, (salesman_id, crop_id, quantity))
-
+        insert_cursor = conn.cursor()
+        insert_cursor.execute(
+            """
+            INSERT INTO orders (crop_id, farmer_id, salesman_id, quantity, status)
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            (crop_id, crop["farmer_id"], salesman_id, quantity, "pending"),
+        )
         conn.commit()
+        insert_cursor.close()
 
-        cursor.close()
-        conn.close()
-
-        return jsonify({"message": "Order placed successfully"})
+        return jsonify({"message": "Order placed successfully"}), 201
 
     except Exception as e:
-        print("ORDER ERROR:", e)
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
-# ---------------------------
-# View Orders
-# ---------------------------
+
 @app.route("/orders", methods=["GET"])
 def get_orders():
+    conn = None
+    cursor = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
 
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            SELECT
+                o.order_id,
+                o.crop_id,
+                o.farmer_id,
+                o.salesman_id,
+                o.quantity,
+                o.status,
+                o.order_date,
+                c.crop_name,
+                c.price,
+                f.name AS farmer_name,
+                f.phone AS farmer_phone,
+                s.name AS salesman_name,
+                s.phone AS salesman_phone
+            FROM orders o
+            JOIN crops c ON o.crop_id = c.crop_id
+            JOIN farmers f ON o.farmer_id = f.farmer_id
+            JOIN salesmen s ON o.salesman_id = s.salesman_id
+            ORDER BY o.order_id DESC
+            """
+        )
 
-    query = """
-    SELECT 
-        orders.order_id,
-        farmers.name AS farmer_name,
-        salesmen.name AS salesman_name,
-        crops.crop_name,
-        orders.quantity,
-        orders.status,
-        orders.order_date
-    FROM orders
-    JOIN crops ON orders.crop_id = crops.crop_id
-    JOIN farmers ON crops.farmer_id = farmers.farmer_id
-    JOIN salesmen ON orders.salesman_id = salesmen.salesman_id
-    """
+        orders = cursor.fetchall()
+        return jsonify({"orders": orders}), 200
 
-    cursor.execute(query)
-    orders = cursor.fetchall()
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
-    cursor.close()
-    conn.close()
 
-    return jsonify({"orders": orders})
+@app.route("/salesman_orders/<int:salesman_id>", methods=["GET"])
+def get_salesman_orders(salesman_id):
+    conn = None
+    cursor = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
 
-# orders for specific salesman
-@app.route("/salesman_orders/<int:salesman_id>")
-def salesman_orders(salesman_id):
+        cursor.execute(
+            """
+            SELECT
+                o.order_id,
+                o.crop_id,
+                o.quantity,
+                o.status,
+                o.order_date,
+                c.crop_name,
+                c.price,
+                f.name AS farmer_name,
+                f.phone AS farmer_phone
+            FROM orders o
+            JOIN crops c ON o.crop_id = c.crop_id
+            JOIN farmers f ON o.farmer_id = f.farmer_id
+            WHERE o.salesman_id = %s
+            ORDER BY o.order_id DESC
+            """,
+            (salesman_id,),
+        )
 
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+        orders = cursor.fetchall()
+        return jsonify({"orders": orders}), 200
 
-    cursor.execute("""
-        SELECT 
-            o.order_id,
-            o.quantity,
-            o.status,
-            c.crop_name,
-            f.name AS farmer_name,
-            f.phone AS farmer_phone
-        FROM orders o
-        JOIN crops c ON o.crop_id = c.crop_id
-        JOIN farmers f ON c.farmer_id = f.farmer_id
-        WHERE o.salesman_id = %s
-    """, (salesman_id,))
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
-    orders = cursor.fetchall()
 
-    cursor.close()
-    conn.close()
+@app.route("/farmer_orders/<int:farmer_id>", methods=["GET"])
+def get_farmer_orders(farmer_id):
+    conn = None
+    cursor = None
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
 
-    return jsonify({"orders": orders})
+        cursor.execute(
+            """
+            SELECT
+                o.order_id,
+                o.crop_id,
+                o.quantity,
+                o.status,
+                o.order_date,
+                c.crop_name,
+                s.name AS salesman_name,
+                s.email AS salesman_email,
+                s.phone AS salesman_phone
+            FROM orders o
+            JOIN crops c ON o.crop_id = c.crop_id
+            JOIN salesmen s ON o.salesman_id = s.salesman_id
+            WHERE o.farmer_id = %s
+            ORDER BY o.order_id DESC
+            """,
+            (farmer_id,),
+        )
 
-# API to Update Order Status
-@app.route("/update_order_status", methods=["POST"])
+        orders = cursor.fetchall()
+        return jsonify({"orders": orders}), 200
+
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+# @app.route("/update_order_status", methods=["POST"])
+# def update_order_status():
+#     conn = None
+#     cursor = None
+#     update_cursor = None
+#     crop_cursor = None
+#     try:
+#         data = request.get_json() or {}
+#         order_id = data.get("order_id")
+#         status = str(data.get("status", "")).strip().lower()
+
+#         if not order_id or status not in ["accepted", "rejected", "pending"]:
+#             return jsonify({"message": "Valid order_id and status are required"}), 400
+
+#         conn = get_connection()
+#         cursor = conn.cursor(dictionary=True)
+
+#         cursor.execute(
+#             "SELECT order_id, crop_id, quantity, status FROM orders WHERE order_id = %s",
+#             (order_id,),
+#         )
+#         order = cursor.fetchone()
+
+#         if not order:
+#             return jsonify({"message": "Order not found"}), 404
+
+#         if order["status"] == "accepted" and status == "accepted":
+#             return jsonify({"message": "Order already accepted"}), 200
+
+#         if order["status"] != "accepted" and status == "accepted":
+#             crop_cursor = conn.cursor()
+#             crop_cursor.execute(
+#                 """
+#                 UPDATE crops
+#                 SET quantity = quantity - %s
+#                 WHERE crop_id = %s AND quantity >= %s
+#                 """,
+#                 (order["quantity"], order["crop_id"], order["quantity"]),
+#             )
+
+#             if crop_cursor.rowcount == 0:
+#                 conn.rollback()
+#                 return jsonify({"message": "Not enough crop quantity to accept this order"}), 400
+
+#         update_cursor = conn.cursor()
+#         update_cursor.execute(
+#             "UPDATE orders SET status = %s WHERE order_id = %s",
+#             (status, order_id),
+#         )
+
+#         conn.commit()
+#         return jsonify({"message": "Order updated successfully"}), 200
+
+#     except Exception as e:
+#         if conn:
+#             conn.rollback()
+#         return jsonify({"message": str(e)}), 500
+#     finally:
+#         if crop_cursor:
+#             crop_cursor.close()
+#         if update_cursor:
+#             update_cursor.close()
+#         if cursor:
+#             cursor.close()
+#         if conn:
+#             conn.close()
+@app.route('/updateorderstatus', methods=['POST', 'OPTIONS'])
 def update_order_status():
+    if request.method == 'OPTIONS':
+        return '', 200
 
-    data = request.json
-    order_id = data["order_id"]
-    status = data["status"]
+    conn = None
+    cursor = None
 
-    conn = get_connection()
-    cursor = conn.cursor()
+    try:
+        data = request.get_json()
 
-    cursor.execute("""
-        UPDATE orders 
-        SET status = %s 
-        WHERE order_id = %s
-    """, (status, order_id))
+        if not data:
+            return jsonify({"message": "No data received"}), 400
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+        orderid = data.get('orderid')
+        status = data.get('status')
 
-    return {"message": "Order updated successfully"}
+        if not orderid or not status:
+            return jsonify({"message": "orderid and status are required"}), 400
 
-# orders for specific farmer
-@app.route("/farmer_orders/<int:farmer_id>")
-def farmer_orders(farmer_id):
+        status = str(status).strip().lower()
 
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+        if status not in ['accepted', 'approved', 'rejected', 'pending']:
+            return jsonify({"message": "Invalid status value"}), 400
 
-    cursor.execute("""
-        SELECT 
-            o.order_id,
-            o.quantity,
-            o.status,
-            c.crop_name,
-            s.name AS salesman_name,
-            s.phone AS salesman_phone
-        FROM orders o
-        JOIN crops c ON o.crop_id = c.crop_id
-        JOIN salesmen s ON o.salesman_id = s.salesman_id
-        WHERE c.farmer_id = %s
-    """, (farmer_id,))
+        conn = get_connection()
+        cursor = conn.cursor()
 
-    orders = cursor.fetchall()
+        cursor.execute(
+            "UPDATE orders SET status = %s WHERE order_id = %s",
+            (status, orderid)
+        )
+        conn.commit()
 
-    cursor.close()
-    conn.close()
+        if cursor.rowcount == 0:
+            return jsonify({"message": "Order not found"}), 404
 
-    return jsonify({"orders": orders})
-    
-# Stats API
-@app.route("/stats")
+        return jsonify({"message": "Order status updated successfully"})
+
+    except Exception as e:
+        return jsonify({"message": f"Server error: {str(e)}"}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+@app.route("/stats", methods=["GET"])
 def get_stats():
-
+    conn = None
+    cursor = None
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        # total crops
         cursor.execute("SELECT COUNT(*) FROM crops")
         total_crops = cursor.fetchone()[0]
 
-        # total orders
         cursor.execute("SELECT COUNT(*) FROM orders")
         total_orders = cursor.fetchone()[0]
 
-        # total farmers
         cursor.execute("SELECT COUNT(*) FROM farmers")
         total_farmers = cursor.fetchone()[0]
 
-        # total salesmen
         cursor.execute("SELECT COUNT(*) FROM salesmen")
         total_salesmen = cursor.fetchone()[0]
-
-        cursor.close()
-        conn.close()
 
         return jsonify({
             "total_crops": total_crops,
             "total_orders": total_orders,
             "total_farmers": total_farmers,
             "total_salesmen": total_salesmen
-        })
+        }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)})
+        return jsonify({"message": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
-# orders for specific farmer with buyer details
-@app.route("/farmer_orders/<int:farmer_id>")
-def get_farmer_orders(farmer_id):
 
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT 
-            o.order_id,
-            o.quantity,
-            o.status,
-
-            c.crop_name,
-
-            s.name AS name,
-            s.email AS email,
-            s.phone AS phone
-
-        FROM orders o
-        JOIN crops c ON o.crop_id = c.crop_id
-        JOIN salesmen s ON o.salesman_id = s.salesman_id
-
-        WHERE c.farmer_id = %s
-    """, (farmer_id,))
-
-    orders = cursor.fetchall()
-
-    print("DEBUG ORDERS:", orders)   # 👈 VERY IMPORTANT
-
-    cursor.close()
-    conn.close()
-
-    return {"orders": orders}
-
-# Run the Flask app 
 if __name__ == "__main__":
     app.run(debug=True)

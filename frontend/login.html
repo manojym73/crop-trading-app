@@ -1,102 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Login | Crop Trading</title>
-
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- AOS -->
-    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
-
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/login.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Crop Trading</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
+  <div class="auth-wrap">
+    <div class="auth-card glass-card fade-up">
+      <div class="text-center mb-4">
+        <h2 id="form-title" class="fw-bold">Welcome Back</h2>
+        <p class="text-muted">Login or create your account to continue</p>
+      </div>
 
-    <!-- 🔥 NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success px-5 py-3 shadow-sm">
+      <div id="role-group" style="display:none;" class="mb-3">
+        <label class="form-label">Role</label>
+        <select id="role" class="form-select">
+          <option value="">Select role</option>
+          <option value="farmer">Farmer</option>
+          <option value="salesman">Salesman</option>
+        </select>
+      </div>
 
-        <div class="container-fluid">
+      <div id="name-group" style="display:none;" class="mb-3">
+        <label class="form-label">Name</label>
+        <input type="text" id="name" class="form-control" placeholder="Enter name">
+      </div>
 
-            <!-- Logo -->
-            <a class="navbar-brand fw-bold fs-4" href="index.html">
-                🌾 Crop Trading
-            </a>
+      <div id="phone-group" style="display:none;" class="mb-3">
+        <label class="form-label">Phone</label>
+        <input type="text" id="phone" class="form-control" placeholder="Enter phone">
+      </div>
 
-            <!-- Right Side -->
-            <div class="ms-auto">
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" id="email" class="form-control" placeholder="Enter email">
+      </div>
 
-                <a href="index.html" class="btn btn-light btn-sm fw-semibold px-3" onclick="goHomeSmart()">
-                    🏠 Home
-                </a>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" id="password" class="form-control" placeholder="Enter password">
+      </div>
 
-            </div>
+      <button id="auth-submit" class="btn btn-success btn-glow w-100" onclick="submitForm()">Login</button>
 
-        </div>
-
-    </nav>
-
-
-    <!-- 🔥 LOGIN CARD -->
-    <div class="container d-flex justify-content-center align-items-center vh-100">
-
-        <div class="card auth-card shadow-lg p-4" data-aos="fade-up">
-
-            <h3 id="form-title" class="text-center mb-3">Login</h3>
-
-            <!-- ROLE -->
-            <select id="role" class="form-select mb-3">
-                <option value="farmer">Farmer</option>
-                <option value="salesman">Salesman</option>
-            </select>
-
-            <!-- NAME -->
-            <input type="text" id="name" class="form-control mb-3" placeholder="Name" style="display:none">
-
-            <!-- PHONE -->
-            <input type="text" id="phone" class="form-control mb-3" placeholder="Phone Number" style="display:none">
-
-            <!-- EMAIL -->
-            <input type="email" id="email" class="form-control mb-3" placeholder="Email">
-
-            <!-- PASSWORD -->
-            <input type="password" id="password" class="form-control mb-3" placeholder="Password">
-
-            <!-- BUTTON -->
-            <button class="btn btn-success w-100 mb-3" onclick="submitForm()">
-                Submit
-            </button>
-
-            <!-- TOGGLE -->
-            <p id="toggle-text" class="text-center">
-                Don't have an account?
-                <a href="#" onclick="toggleForm()">Sign Up</a>
-            </p>
-
-        </div>
-
+      <p class="text-center mt-3 mb-0" id="toggle-text">
+        Don't have an account? <a href="#" onclick="toggleForm(event)">Sign Up</a>
+      </p>
     </div>
+  </div>
 
+  <div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="liveToast" class="toast align-items-center text-white border-0 bg-success" role="alert">
+      <div class="d-flex">
+        <div class="toast-body" id="toast-message">Done</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- AOS -->
-    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-    <script>
-        AOS.init();
-    </script>
-
-    <script src="js/config.js"></script>
-    <script src="js/login.js"></script>
-
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/notification.js"></script>
+  <script src="js/login.js"></script>
 </body>
 
 </html>
