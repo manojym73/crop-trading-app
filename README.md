@@ -10,7 +10,7 @@ A web application that connects farmers and salesmen for direct crop trading.
 - 📞 Contact sharing after approval
 
 ## 🛠️ Tech Stack
-- Frontend: HTML, CSS, JavaScript
+- Frontend: HTML, CSS, JavaScript, Boostrap
 - Backend: Flask (Python)
 - Database: MySQL
 

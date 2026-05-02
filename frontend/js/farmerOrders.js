@@ -188,7 +188,7 @@ async function loadFarmerOrders() {
       const cropName = order.cropname || order.crop_name || "Unknown Crop";
       const buyerName = order.salesmanname || order.salesman_name || order.name || "N/A";
       const buyerPhone = order.salesmanphone || order.salesman_phone || order.phone || "N/A";
-
+     
       const quantity = Number(order.quantity || 0);
       const status = String(order.status || "pending").toLowerCase();
       const orderId = order.orderid || order.order_id;
@@ -202,15 +202,16 @@ async function loadFarmerOrders() {
             
             <p><b>Quantity:</b> ${quantity} kg</p>
             <div class="mt-2">
-              ${status === "accepted" || status === "approved"
-          ? `<span class="badge bg-success">Accepted</span>`
-          : status === "rejected"
-            ? `<span class="badge bg-danger">Rejected</span>`
-            : `
+              ${
+                status === "accepted" || status === "approved"
+                  ? `<span class="badge bg-success">Accepted</span>`
+                  : status === "rejected"
+                  ? `<span class="badge bg-danger">Rejected</span>`
+                  : `
                     <button class="btn btn-success btn-sm me-2" onclick="updateOrderStatus(${orderId}, 'accepted')">Accept</button>
                     <button class="btn btn-danger btn-sm" onclick="updateOrderStatus(${orderId}, 'rejected')">Reject</button>
                   `
-        }
+              }
             </div>
           </div>
         </div>

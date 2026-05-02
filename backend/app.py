@@ -532,21 +532,59 @@ def update_order_status():
             return jsonify({"message": "Invalid status value"}), 400
 
         conn = get_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
 
         cursor.execute(
+            "SELECT order_id, crop_id, quantity, status FROM orders WHERE order_id = %s",
+            (orderid,)
+        )
+        order = cursor.fetchone()
+
+        if not order:
+            return jsonify({"message": "Order not found"}), 404
+
+        if str(order['status']).lower() == 'accepted' and status == 'accepted':
+            return jsonify({"message": "Order already accepted"}), 200
+
+        update_cursor = conn.cursor()
+        update_cursor.execute(
             "UPDATE orders SET status = %s WHERE order_id = %s",
             (status, orderid)
         )
+
+        # Only reduce crop quantity when status changes to accepted
+        if str(order['status']).lower() != 'accepted' and status == 'accepted':
+            crop_cursor = conn.cursor()
+            crop_cursor.execute(
+                """
+                UPDATE crops 
+                SET quantity = quantity - %s 
+                WHERE crop_id = %s AND quantity >= %s
+                """,
+                (order['quantity'], order['crop_id'], order['quantity'])
+            )
+
+            print(f"CROP UPDATE ROWCOUNT: {crop_cursor.rowcount}")
+            print(f"CROP ID: {order['crop_id']}, QTY: {order['quantity']}")
+
+            if crop_cursor.rowcount == 0:
+                conn.rollback()
+                return jsonify({"message": "Not enough crop quantity to accept this order"}), 400
+
+            crop_cursor.close()
+
         conn.commit()
+        update_cursor.close()
+        cursor.close()
+        conn.close()
 
-        if cursor.rowcount == 0:
-            return jsonify({"message": "Order not found"}), 404
-
-        return jsonify({"message": "Order status updated successfully"})
+        return jsonify({"message": "Order updated successfully"})
 
     except Exception as e:
-        return jsonify({"message": f"Server error: {str(e)}"}), 500
+        print(f"UPDATE ORDER ERROR: {e}")
+        if conn:
+            conn.rollback()
+        return jsonify({"message": str(e)}), 500
 
     finally:
         if cursor:
