@@ -32,7 +32,7 @@
   </header>
 
   <section class="section-space pt-4" id="market-section">
-    <div class="container">
+    <!-- <div class="container">
       <div class="glass-card search-panel mb-4" data-aos="fade-up">
         <div class="row g-3 align-items-end">
           <div class="col-md-5">
@@ -49,19 +49,51 @@
             </button>
           </div>
         </div>
-      </div>
-
-      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div>
-          <h2 class="section-title mb-0">Available Crops</h2>
-          <p class="section-subtitle mb-0">Fresh marketplace listings from farmers</p>
+      </div> -->
+    <div class="card p-4 shadow-sm border-0">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <input type="text" id="searchCrop" class="form-control" placeholder="Search crop name">
         </div>
-        <a href="orders.html" class="btn btn-outline-success btn-soft">
-          <i class="bi bi-bag-check me-1"></i>My Orders
-        </a>
-      </div>
 
-      <div class="row g-4" id="crop-list"></div>
+        <div class="col-md-3">
+          <input type="text" id="searchLocation" class="form-control" placeholder="Location">
+        </div>
+
+        <div class="col-md-2">
+          <input type="number" id="minPrice" class="form-control" placeholder="Min price">
+        </div>
+
+        <div class="col-md-2">
+          <input type="number" id="maxPrice" class="form-control" placeholder="Max price">
+        </div>
+
+        <div class="col-md-2">
+          <select id="sortPrice" class="form-select">
+            <option value="">Sort</option>
+            <option value="low">Price: Low to High</option>
+            <option value="high">Price: High to Low</option>
+          </select>
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+          <button class="btn btn-success" onclick="searchCrops()">Search</button>
+          <button class="btn btn-outline-success" onclick="resetFilters()">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <h2 class="section-title mb-0">Available Crops</h2>
+        <p class="section-subtitle mb-0">Fresh marketplace listings from farmers</p>
+      </div>
+      <a href="orders.html" class="btn btn-outline-success btn-soft">
+        <i class="bi bi-bag-check me-1"></i>My Orders
+      </a>
+    </div>
+
+    <div class="row g-4" id="crop-list"></div>
     </div>
   </section>
 

@@ -84,30 +84,89 @@ async function loadCrops() {
   }
 }
 
-async function searchCrops() {
+// async function searchCrops() {
+//   const cropName = document.getElementById("searchCrop")?.value?.toLowerCase().trim() || "";
+//   const location = document.getElementById("searchLocation")?.value?.toLowerCase().trim() || "";
+//   const container = document.getElementById("crop-list");
+//   if (!container) return;
+
+//   try {
+//     const res = await fetch(`${API}/crops`);
+//     const data = await res.json();
+
+//     if (!res.ok) throw new Error(data.message || "Failed to search crops");
+
+//     const filtered = (data.crops || []).filter((crop) => {
+//       const cropMatch = (crop.crop_name || "").toLowerCase().includes(cropName);
+//       const locationMatch = (crop.location || "").toLowerCase().includes(location);
+//       return cropMatch && locationMatch;
+//     });
+
+//     renderCrops(filtered);
+//   } catch (err) {
+//     console.error("Search crops error:", err);
+//     container.innerHTML = `<p class="text-danger text-center">${err.message || "Failed to search crops"}</p>`;
+//   }
+// }
+function searchCrops() {
   const cropName = document.getElementById("searchCrop")?.value?.toLowerCase().trim() || "";
   const location = document.getElementById("searchLocation")?.value?.toLowerCase().trim() || "";
+  const minPrice = parseFloat(document.getElementById("minPrice")?.value) || 0;
+  const maxPrice = parseFloat(document.getElementById("maxPrice")?.value) || Infinity;
+  const sortPrice = document.getElementById("sortPrice")?.value || "";
   const container = document.getElementById("crop-list");
+
   if (!container) return;
 
-  try {
-    const res = await fetch(`${API}/crops`);
-    const data = await res.json();
+  fetch(`${API}/crops`)
+    .then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || data.error || "Failed to search crops");
+      return data;
+    })
+    .then((data) => {
+      let filtered = data.crops.filter((crop) => {
+        const cropMatch = (crop.cropname || "").toLowerCase().includes(cropName);
+        const locationMatch = (crop.location || "").toLowerCase().includes(location);
+        const price = Number(crop.price) || 0;
 
-    if (!res.ok) throw new Error(data.message || "Failed to search crops");
+        return cropMatch && locationMatch && price >= minPrice && price <= maxPrice;
+      });
 
-    const filtered = (data.crops || []).filter((crop) => {
-      const cropMatch = (crop.crop_name || "").toLowerCase().includes(cropName);
-      const locationMatch = (crop.location || "").toLowerCase().includes(location);
-      return cropMatch && locationMatch;
+      if (sortPrice === "low") {
+        filtered.sort((a, b) => Number(a.price) - Number(b.price));
+      } else if (sortPrice === "high") {
+        filtered.sort((a, b) => Number(b.price) - Number(a.price));
+      }
+
+      renderCrops(filtered);
+    })
+    .catch((err) => {
+      console.error("Search crops error:", err);
+      container.innerHTML = `<p class="text-danger text-center">${err.message}</p>`;
     });
-
-    renderCrops(filtered);
-  } catch (err) {
-    console.error("Search crops error:", err);
-    container.innerHTML = `<p class="text-danger text-center">${err.message || "Failed to search crops"}</p>`;
-  }
 }
+
+function resetFilters() {
+  document.getElementById("searchCrop").value = "";
+  document.getElementById("searchLocation").value = "";
+  document.getElementById("minPrice").value = "";
+  document.getElementById("maxPrice").value = "";
+  document.getElementById("sortPrice").value = "";
+
+  loadCrops();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  ["searchCrop", "searchLocation", "minPrice", "maxPrice", "sortPrice"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("input", searchCrops);
+      el.addEventListener("change", searchCrops);
+    }
+  });
+});
+
 
 async function addCrop() {
   const farmerId = localStorage.getItem("farmerid");
