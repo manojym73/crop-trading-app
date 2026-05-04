@@ -31,6 +31,42 @@
   <section class="section-space pt-4">
     <div class="container">
       <div class="row g-4" id="orders-list"></div>
+      <div class="modal fade" id="updateOrderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content border-0 rounded-4 overflow-hidden shadow-lg">
+
+            <div class="modal-header bg-success text-white border-0 px-4 py-3">
+              <h3 class="modal-title fw-bold">Update Order</h3>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body bg-white p-4">
+              <input type="hidden" id="update-order-id">
+
+              <div class="mb-4">
+                <label class="form-label fw-semibold">Crop Name</label>
+                <input type="text" id="update-crop-name" class="form-control form-control-lg rounded-3" readonly>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-semibold">Quantity</label>
+                <input type="number" id="update-order-quantity" class="form-control form-control-lg rounded-3"
+                  placeholder="Enter quantity">
+              </div>
+
+              <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="button" class="btn btn-light border rounded-3 px-4" data-bs-dismiss="modal">
+                  Cancel
+                </button>
+                <button type="button" class="btn btn-success rounded-3 px-4" onclick="saveUpdatedOrder()">
+                  Save Changes
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 

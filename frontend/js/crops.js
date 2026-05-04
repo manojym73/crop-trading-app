@@ -282,9 +282,13 @@ async function loadMyCrops() {
     const res = await fetch(`${API}/crops`);
     const data = await res.json();
 
-    if (!res.ok) throw new Error(data.message || "Failed to load crops");
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to load crops");
+    }
 
-    const myCrops = (data.crops || []).filter(crop => Number(crop.farmer_id) === farmerId);
+    const myCrops = (data.crops || []).filter(
+      (crop) => Number(crop.farmer_id) === farmerId
+    );
 
     if (myCrops.length === 0) {
       container.innerHTML = `<p class="text-center text-muted">No crops added yet</p>`;
@@ -301,20 +305,153 @@ async function loadMyCrops() {
             style="height: 220px; object-fit: cover;"
             onerror="this.src='https://via.placeholder.com/600x350?text=No+Image'"
           />
-          <div class="card-body">
+          <div class="card-body d-flex flex-column">
             <h5 class="fw-bold">${crop.crop_name || "Crop"}</h5>
             <p class="mb-1"><b>Quantity:</b> ${crop.quantity || 0} kg</p>
             <p class="mb-1"><b>Price:</b> ₹${crop.price || 0}/kg</p>
-            <p class="mb-0"><b>Location:</b> ${crop.location || "N/A"}</p>
+            <p class="mb-3"><b>Location:</b> ${crop.location || "N/A"}</p>
+
+            <div class="d-flex gap-2 mt-auto">
+                <button
+                  class="btn btn-success btn-sm w-50"
+                  onclick="openEditModal(${crop.crop_id}, '${(crop.crop_name || "").replace(/'/g, "\\'")}', '${crop.quantity}', '${crop.price}', '${(crop.location || "").replace(/'/g, "\\'")}')"
+                >
+                  Update
+                </button>
+
+                <button
+                  class="btn btn-outline-danger btn-sm w-50"
+                  onclick="deleteCrop(${crop.crop_id})"
+                >
+                  Delete
+                </button>
+              </div>
           </div>
         </div>
       </div>
     `).join("");
+
   } catch (err) {
     console.error("Load my crops error:", err);
     container.innerHTML = `<p class="text-danger text-center">${err.message || "Failed to load crops"}</p>`;
   }
 }
+
+
+function openEditModal(cropId, cropName, quantity, price, location) {
+  document.getElementById("editCropId").value = cropId;
+  document.getElementById("editCropName").value = cropName;
+  document.getElementById("editCropQuantity").value = quantity;
+  document.getElementById("editCropPrice").value = price;
+  document.getElementById("editCropLocation").value = location;
+
+  const modal = new bootstrap.Modal(document.getElementById("editCropModal"));
+  modal.show();
+}
+
+async function saveCropUpdate() {
+  const cropId = document.getElementById("editCropId").value;
+  const cropName = document.getElementById("editCropName").value.trim();
+  const quantity = document.getElementById("editCropQuantity").value.trim();
+  const price = document.getElementById("editCropPrice").value.trim();
+  const location = document.getElementById("editCropLocation").value.trim();
+
+  if (!cropName || !quantity || !price || !location) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/update_crop/${cropId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        crop_name: cropName,
+        quantity: quantity,
+        price: price,
+        location: location
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to update crop");
+
+    alert(data.message || "Crop updated successfully");
+
+    const modalEl = document.getElementById("editCropModal");
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
+
+    loadMyCrops();
+    loadCrops();
+  } catch (err) {
+    console.error("Update crop error:", err);
+    alert(err.message);
+  }
+}
+
+async function editCrop(cropId) {
+  const cropName = prompt("Enter new crop name:");
+  const quantity = prompt("Enter new quantity:");
+  const price = prompt("Enter new price:");
+  const location = prompt("Enter new location:");
+
+  if (!cropName || !quantity || !price || !location) {
+    alert("All fields are required");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/update_crop/${cropId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        crop_name: cropName,
+        quantity: quantity,
+        price: price,
+        location: location
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Failed to update crop");
+
+    alert(data.message || "Crop updated successfully");
+    loadMyCrops();
+    loadCrops();
+  } catch (err) {
+    console.error("Update crop error:", err);
+    alert(err.message);
+  }
+}
+
+async function deleteCrop(cropId) {
+  const ok = confirm("Are you sure you want to delete this crop?");
+  if (!ok) return;
+
+  try {
+    const res = await fetch(`${API}/delete_crop/${cropId}`, {
+      method: "DELETE"
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Failed to delete crop");
+
+    alert(data.message || "Crop deleted successfully");
+    loadMyCrops();
+    loadCrops();
+  } catch (err) {
+    console.error("Delete crop error:", err);
+    alert(err.message);
+  }
+}
+
 
 async function loadStats() {
   try {

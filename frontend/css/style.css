@@ -461,3 +461,18 @@ a {
     padding: 0 12px;
   }
 }
+
+/* Edit Crop Modal */
+#editCropModal .form-control:focus {
+  border-color: #198754;
+  box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.2);
+}
+
+#editCropModal .modal-content {
+  background: #ffffff;
+}
+
+#editCropModal .modal-title {
+  letter-spacing: 0.3px;
+}
+
