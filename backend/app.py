@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from database import get_connection
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 CORS(app)
@@ -32,145 +33,288 @@ def uploaded_file(filename):
     return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 
+# @app.route("/register_farmer", methods=["POST"])
+# def register_farmer():
+#     conn = None
+#     cursor = None
+#     try:
+#         data = request.get_json() or {}
+
+#         name = data.get("name", "").strip()
+#         email = data.get("email", "").strip().lower()
+#         password = data.get("password", "").strip()
+#         phone = data.get("phone", "").strip()
+
+#         if not name or not email or not password or not phone:
+#             return jsonify({"message": "All fields are required"}), 400
+
+#         conn = get_connection()
+#         cursor = conn.cursor(dictionary=True)
+
+#         cursor.execute("SELECT farmer_id FROM farmers WHERE email = %s", (email,))
+#         if cursor.fetchone():
+#             return jsonify({"message": "Farmer email already registered"}), 409
+
+#         cursor.execute(
+#             """
+#             INSERT INTO farmers (name, email, password, phone)
+#             VALUES (%s, %s, %s, %s)
+#             """,
+#             (name, email, password, phone),
+#         )
+#         conn.commit()
+
+#         return jsonify({"message": "Farmer registered successfully"}), 201
+
+#     except Exception as e:
+#         return jsonify({"message": str(e)}), 500
+#     finally:
+#         if cursor:
+#             cursor.close()
+#         if conn:
+#             conn.close()
+
+
+# @app.route("/register_salesman", methods=["POST"])
+# def register_salesman():
+#     conn = None
+#     cursor = None
+#     try:
+#         data = request.get_json() or {}
+
+#         name = data.get("name", "").strip()
+#         email = data.get("email", "").strip().lower()
+#         password = data.get("password", "").strip()
+#         phone = data.get("phone", "").strip()
+
+#         if not name or not email or not password or not phone:
+#             return jsonify({"message": "All fields are required"}), 400
+
+#         conn = get_connection()
+#         cursor = conn.cursor(dictionary=True)
+
+#         cursor.execute("SELECT salesman_id FROM salesmen WHERE email = %s", (email,))
+#         if cursor.fetchone():
+#             return jsonify({"message": "Salesman email already registered"}), 409
+
+#         cursor.execute(
+#             """
+#             INSERT INTO salesmen (name, email, password, phone)
+#             VALUES (%s, %s, %s, %s)
+#             """,
+#             (name, email, password, phone),
+#         )
+#         conn.commit()
+
+#         return jsonify({"message": "Salesman registered successfully"}), 201
+
+#     except Exception as e:
+#         return jsonify({"message": str(e)}), 500
+#     finally:
+#         if cursor:
+#             cursor.close()
+#         if conn:
+#             conn.close()
+
+
+# @app.route("/login", methods=["POST"])
+# def login():
+#     conn = None
+#     cursor = None
+#     try:
+#         data = request.get_json() or {}
+#         email = data.get("email", "").strip().lower()
+#         password = data.get("password", "").strip()
+
+#         if not email or not password:
+#             return jsonify({"message": "Email and password are required"}), 400
+
+#         conn = get_connection()
+#         cursor = conn.cursor(dictionary=True)
+
+#         cursor.execute(
+#             "SELECT farmer_id, name, email, phone FROM farmers WHERE email = %s AND password = %s",
+#             (email, password),
+#         )
+#         farmer = cursor.fetchone()
+
+#         if farmer:
+#             return jsonify({
+#                 "role": "farmer",
+#                 "id": farmer["farmer_id"],
+#                 "name": farmer["name"],
+#                 "email": farmer["email"],
+#                 "phone": farmer["phone"]
+#             }), 200
+
+#         cursor.execute(
+#             "SELECT salesman_id, name, email, phone FROM salesmen WHERE email = %s AND password = %s",
+#             (email, password),
+#         )
+#         salesman = cursor.fetchone()
+
+#         if salesman:
+#             return jsonify({
+#                 "role": "salesman",
+#                 "id": salesman["salesman_id"],
+#                 "name": salesman["name"],
+#                 "email": salesman["email"],
+#                 "phone": salesman["phone"]
+#             }), 200
+
+#         return jsonify({"message": "Invalid email or password"}), 401
+
+#     except Exception as e:
+#         return jsonify({"message": str(e)}), 500
+#     finally:
+#         if cursor:
+#             cursor.close()
+#         if conn:
+#             conn.close()
+# ---------------------------
+# Register Farmer
+# ---------------------------
 @app.route("/register_farmer", methods=["POST"])
 def register_farmer():
-    conn = None
-    cursor = None
     try:
         data = request.get_json() or {}
 
         name = data.get("name", "").strip()
-        email = data.get("email", "").strip().lower()
+        email = data.get("email", "").strip()
         password = data.get("password", "").strip()
         phone = data.get("phone", "").strip()
 
         if not name or not email or not password or not phone:
-            return jsonify({"message": "All fields are required"}), 400
+            return jsonify({"message": "All fields required"}), 400
+
+        hashed_password = generate_password_hash(password)
 
         conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
 
         cursor.execute("SELECT farmer_id FROM farmers WHERE email = %s", (email,))
-        if cursor.fetchone():
-            return jsonify({"message": "Farmer email already registered"}), 409
+        existing_farmer = cursor.fetchone()
+        if existing_farmer:
+            cursor.close()
+            conn.close()
+            return jsonify({"message": "Email already registered as farmer"}), 400
 
         cursor.execute(
             """
             INSERT INTO farmers (name, email, password, phone)
             VALUES (%s, %s, %s, %s)
             """,
-            (name, email, password, phone),
+            (name, email, hashed_password, phone),
         )
+
         conn.commit()
+        cursor.close()
+        conn.close()
 
         return jsonify({"message": "Farmer registered successfully"}), 201
 
     except Exception as e:
         return jsonify({"message": str(e)}), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
 
 
+# ---------------------------
+# Register Salesman
+# ---------------------------
 @app.route("/register_salesman", methods=["POST"])
 def register_salesman():
-    conn = None
-    cursor = None
     try:
         data = request.get_json() or {}
 
         name = data.get("name", "").strip()
-        email = data.get("email", "").strip().lower()
+        email = data.get("email", "").strip()
         password = data.get("password", "").strip()
         phone = data.get("phone", "").strip()
 
         if not name or not email or not password or not phone:
-            return jsonify({"message": "All fields are required"}), 400
+            return jsonify({"message": "All fields required"}), 400
+
+        hashed_password = generate_password_hash(password)
 
         conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
 
         cursor.execute("SELECT salesman_id FROM salesmen WHERE email = %s", (email,))
-        if cursor.fetchone():
-            return jsonify({"message": "Salesman email already registered"}), 409
+        existing_salesman = cursor.fetchone()
+        if existing_salesman:
+            cursor.close()
+            conn.close()
+            return jsonify({"message": "Email already registered as salesman"}), 400
 
         cursor.execute(
             """
             INSERT INTO salesmen (name, email, password, phone)
             VALUES (%s, %s, %s, %s)
             """,
-            (name, email, password, phone),
+            (name, email, hashed_password, phone),
         )
+
         conn.commit()
+        cursor.close()
+        conn.close()
 
         return jsonify({"message": "Salesman registered successfully"}), 201
 
     except Exception as e:
         return jsonify({"message": str(e)}), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
 
 
+# ---------------------------
+# Login
+# ---------------------------
 @app.route("/login", methods=["POST"])
 def login():
-    conn = None
-    cursor = None
     try:
         data = request.get_json() or {}
-        email = data.get("email", "").strip().lower()
+
+        email = data.get("email", "").strip()
         password = data.get("password", "").strip()
 
         if not email or not password:
-            return jsonify({"message": "Email and password are required"}), 400
+            return jsonify({"message": "Email and password required"}), 400
 
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
 
-        cursor.execute(
-            "SELECT farmer_id, name, email, phone FROM farmers WHERE email = %s AND password = %s",
-            (email, password),
-        )
+        cursor.execute("SELECT * FROM farmers WHERE email = %s", (email,))
         farmer = cursor.fetchone()
 
-        if farmer:
+        if farmer and check_password_hash(farmer["password"], password):
+            cursor.close()
+            conn.close()
             return jsonify({
                 "role": "farmer",
                 "id": farmer["farmer_id"],
                 "name": farmer["name"],
                 "email": farmer["email"],
                 "phone": farmer["phone"]
-            }), 200
+            })
 
-        cursor.execute(
-            "SELECT salesman_id, name, email, phone FROM salesmen WHERE email = %s AND password = %s",
-            (email, password),
-        )
+        cursor.execute("SELECT * FROM salesmen WHERE email = %s", (email,))
         salesman = cursor.fetchone()
 
-        if salesman:
+        if salesman and check_password_hash(salesman["password"], password):
+            cursor.close()
+            conn.close()
             return jsonify({
                 "role": "salesman",
                 "id": salesman["salesman_id"],
                 "name": salesman["name"],
                 "email": salesman["email"],
                 "phone": salesman["phone"]
-            }), 200
+            })
 
-        return jsonify({"message": "Invalid email or password"}), 401
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message": "Invalid login"}), 401
 
     except Exception as e:
         return jsonify({"message": str(e)}), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
-
 
 @app.route("/add_crop", methods=["POST"])
 def add_crop():
