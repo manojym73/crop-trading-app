@@ -727,7 +727,95 @@ def delete_salesman_order():
     except Exception as e:
         return jsonify({"message": str(e)}), 500
     
-    
+
+# ---------------------------  
+
+# import os
+# import uuid
+# from flask import request, jsonify
+# from werkzeug.utils import secure_filename
+
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route("/updateprofile", methods=["POST"])
+def update_profile():
+    conn = None
+    cursor = None
+    try:
+        userid = request.form.get("userid", "").strip()
+        role = request.form.get("role", "").strip().lower()
+        name = request.form.get("name", "").strip()
+        phone = request.form.get("phone", "").strip()
+        email = request.form.get("email", "").strip()
+        image = request.files.get("image")
+
+        if not userid or not role or not name or not phone or not email:
+            return jsonify({"message": "All fields are required"}), 400
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        filename = None
+        if image and image.filename:
+            if not allowed_file(image.filename):
+                return jsonify({"message": "Only png, jpg, jpeg, webp allowed"}), 400
+
+            ext = image.filename.rsplit(".", 1)[1].lower()
+            filename = f"{uuid.uuid4().hex}.{ext}"
+            image.save(os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(filename)))
+
+        if role == "farmer":
+            if filename:
+                cursor.execute(
+                    "UPDATE farmers SET name=%s, phone=%s, email=%s, profileimage=%s WHERE farmerid=%s",
+                    (name, phone, email, filename, userid)
+                )
+            else:
+                cursor.execute(
+                    "UPDATE farmers SET name=%s, phone=%s, email=%s WHERE farmerid=%s",
+                    (name, phone, email, userid)
+                )
+        elif role == "salesman":
+            if filename:
+                cursor.execute(
+                    "UPDATE salesmen SET name=%s, phone=%s, email=%s, profileimage=%s WHERE salesmanid=%s",
+                    (name, phone, email, filename, userid)
+                )
+            else:
+                cursor.execute(
+                    "UPDATE salesmen SET name=%s, phone=%s, email=%s WHERE salesmanid=%s",
+                    (name, phone, email, userid)
+                )
+        else:
+            return jsonify({"message": "Invalid role"}), 400
+
+        conn.commit()
+        return jsonify({"message": "Profile updated successfully", "filename": filename}), 200
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({"message": str(e)}), 500
+
+    finally:
+        close_resources(cursor, conn)
+
+def close_resources(cursor=None, conn=None):
+    try:
+        if cursor:
+            cursor.close()
+    except:
+        pass
+
+    try:
+        if conn:
+            conn.close()
+    except:
+        pass
+
 
 # if __name__ == "__main__":
 #     app.run(debug=True)
