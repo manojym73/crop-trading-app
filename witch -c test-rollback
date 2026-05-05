@@ -1,0 +1,25 @@
+[33m023aea5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mbackup-latest-code[m[33m)[m updated salesman order quantity popup and order UI
+ backend/app.py         | 368 [32m+++++++++++++++++++++[m[31m--------------------------[m
+ frontend/css/style.css |  17 [32m++[m[31m-[m
+ frontend/farmer.html   |  43 [32m++++++[m
+ frontend/js/crops.js   | 145 [32m++++++++++++++++++[m[31m-[m
+ frontend/js/orders.js  | 380 [32m+++++++++++++++++++++++++++++++++++++++[m[31m----------[m
+ frontend/orders.html   |  36 [32m+++++[m
+ frontend/salesman.html |  71 [32m++++[m[31m-----[m
+ 7 files changed, 743 insertions(+), 317 deletions(-)
+[33m32183a9[m Updated auth routes and login fixes
+ backend/app.py | 242 [32m+++++++++++++++++++++++++++++++++++++++++++++[m[31m------------[m
+ 1 file changed, 193 insertions(+), 49 deletions(-)
+[33m7e03922[m Added crop search, filter, and sort improvements
+ frontend/js/crops.js   | 91 [32m+++++++++++++++++++++++++++++++++++++++++[m[31m---------[m
+ frontend/salesman.html | 52 [32m+++++++++++++++++++++++[m[31m------[m
+ 2 files changed, 117 insertions(+), 26 deletions(-)
+[33mfb45b9d[m Updated home page UI and footer
+ frontend/css/style.css | 141 [32m+++++++++++++++++++++++++++++++++++++++++++++++++[m
+ frontend/index.html    |  30 [32m+++++++++++[m
+ 2 files changed, 171 insertions(+)
+[33md2a161b[m Fix: Crop quantity deduction on order accept
+ README.md                   |  2 [32m+[m[31m-[m
+ backend/app.py              | 50 [32m+++++++++++++++++++++++++++++++++++++++[m[31m------[m
+ frontend/js/farmerOrders.js | 15 [32m+++++++[m[31m-------[m
+ 3 files changed, 53 insertions(+), 14 deletions(-)
