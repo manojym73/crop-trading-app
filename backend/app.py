@@ -10,18 +10,37 @@ app = Flask(__name__)
 CORS(app)
 
 
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
+# ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+
+# app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+# os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# def allowed_file(filename):
+#     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
+def close_resources(cursor=None, conn=None):
+    try:
+        if cursor:
+            cursor.close()
+    except:
+        pass
+    try:
+        if conn:
+            conn.close()
+    except:
+        pass
 
 @app.route("/")
 def home():
@@ -728,72 +747,226 @@ def delete_salesman_order():
         return jsonify({"message": str(e)}), 500
     
 
-# ---------------------------  
 
-# import os
-# import uuid
-# from flask import request, jsonify
-# from werkzeug.utils import secure_filename
 
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+# @app.route("/updateprofile", methods=["POST"])
+# def update_profile():
+#     conn = None
+#     cursor = None
+#     try:
+#         userid = str(request.form.get("userid", "")).strip()
+#         role = str(request.form.get("role", "")).strip().lower()
+#         name = str(request.form.get("name", "")).strip()
+#         phone = str(request.form.get("phone", "")).strip()
+#         email = str(request.form.get("email", "")).strip()
+#         image = request.files.get("image")
 
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+#         if not userid or not role or not name or not phone or not email:
+#             return jsonify({"message": "All fields are required"}), 400
 
+#         conn = get_connection()
+#         cursor = conn.cursor(dictionary=True)
+
+#         if role == "farmer":
+#             cursor.execute("SELECT farmer_id, profile_image FROM farmers WHERE farmer_id = %s", (userid,))
+#             user_row = cursor.fetchone()
+#             if not user_row:
+#                 return jsonify({"message": "Farmer not found"}), 404
+#         elif role == "salesman":
+#             cursor.execute("SELECT salesman_id, profile_image FROM salesmen WHERE salesman_id = %s", (userid,))
+#             user_row = cursor.fetchone()
+#             if not user_row:
+#                 return jsonify({"message": "Salesman not found"}), 404
+#         else:
+#             return jsonify({"message": "Invalid role"}), 400
+
+#         filename = user_row.get("profile_image")
+
+#         if image and image.filename:
+#             if not allowed_file(image.filename):
+#                 return jsonify({"message": "Only png, jpg, jpeg, webp files allowed"}), 400
+
+#             ext = image.filename.rsplit(".", 1)[1].lower()
+#             filename = secure_filename(f"{uuid.uuid4().hex}.{ext}")
+#             image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+#         update_cursor = conn.cursor()
+
+#         if role == "farmer":
+#             update_cursor.execute(
+#                 """
+#                 UPDATE farmers
+#                 SET name = %s, phone = %s, email = %s, profile_image = %s
+#                 WHERE farmer_id = %s
+#                 """,
+#                 (name, phone, email, filename, userid)
+#             )
+#         else:
+#             update_cursor.execute(
+#                 """
+#                 UPDATE salesmen
+#                 SET name = %s, phone = %s, email = %s, profile_image = %s
+#                 WHERE salesman_id = %s
+#                 """,
+#                 (name, phone, email, filename, userid)
+#             )
+
+#         conn.commit()
+#         update_cursor.close()
+
+#         return jsonify({
+#             "message": "Profile updated successfully",
+#             "filename": filename
+#         }), 200
+
+#     except Exception as e:
+#         if conn:
+#             conn.rollback()
+#         return jsonify({"message": str(e)}), 500
+
+#     finally:
+#         close_resources(cursor, conn)
+# @app.route("/removeprofileimage", methods=["POST"])
+# def remove_profile_image():
+#     conn = None
+#     cursor = None
+#     try:
+#         data = request.get_json() or {}
+#         role = data.get("role")
+#         user_id = data.get("id")
+
+#         if not role or not user_id:
+#             return jsonify({"message": "role and id are required"}), 400
+
+#         conn = getconnection()
+#         cursor = conn.cursor(dictionary=True)
+
+#         if role == "farmer":
+#             cursor.execute("SELECT image FROM farmers WHERE farmer_id = %s", (user_id,))
+#             user = cursor.fetchone()
+#             if not user:
+#                 return jsonify({"message": "Farmer not found"}), 404
+
+#             filename = user.get("image")
+#             if filename:
+#                 file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+#                 if os.path.exists(file_path):
+#                     os.remove(file_path)
+
+#             cursor = conn.cursor()
+#             cursor.execute("UPDATE farmers SET image = NULL WHERE farmer_id = %s", (user_id,))
+
+#         elif role == "salesman":
+#             cursor.execute("SELECT image FROM salesmen WHERE salesman_id = %s", (user_id,))
+#             user = cursor.fetchone()
+#             if not user:
+#                 return jsonify({"message": "Salesman not found"}), 404
+
+#             filename = user.get("image")
+#             if filename:
+#                 file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+#                 if os.path.exists(file_path):
+#                     os.remove(file_path)
+
+#             cursor = conn.cursor()
+#             cursor.execute("UPDATE salesmen SET image = NULL WHERE salesman_id = %s", (user_id,))
+#         else:
+#             return jsonify({"message": "Invalid role"}), 400
+
+#         conn.commit()
+#         return jsonify({"message": "Image removed successfully"}), 200
+
+#     except Exception as e:
+#         if conn:
+#             conn.rollback()
+#         return jsonify({"message": str(e)}), 500
+
+#     finally:
+#         if cursor:
+#             cursor.close()
+#         if conn:
+#             conn.close()
 @app.route("/updateprofile", methods=["POST"])
 def update_profile():
     conn = None
     cursor = None
+    update_cursor = None
     try:
-        userid = request.form.get("userid", "").strip()
-        role = request.form.get("role", "").strip().lower()
-        name = request.form.get("name", "").strip()
-        phone = request.form.get("phone", "").strip()
-        email = request.form.get("email", "").strip()
+        userid = str(request.form.get("userid", "")).strip()
+        role = str(request.form.get("role", "")).strip().lower()
+        name = str(request.form.get("name", "")).strip()
+        phone = str(request.form.get("phone", "")).strip()
+        email = str(request.form.get("email", "")).strip()
+        remove_image = str(request.form.get("remove_image", "false")).strip().lower() == "true"
         image = request.files.get("image")
 
         if not userid or not role or not name or not phone or not email:
             return jsonify({"message": "All fields are required"}), 400
 
         conn = get_connection()
-        cursor = conn.cursor()
-
-        filename = None
-        if image and image.filename:
-            if not allowed_file(image.filename):
-                return jsonify({"message": "Only png, jpg, jpeg, webp allowed"}), 400
-
-            ext = image.filename.rsplit(".", 1)[1].lower()
-            filename = f"{uuid.uuid4().hex}.{ext}"
-            image.save(os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(filename)))
+        cursor = conn.cursor(dictionary=True)
 
         if role == "farmer":
-            if filename:
-                cursor.execute(
-                    "UPDATE farmers SET name=%s, phone=%s, email=%s, profileimage=%s WHERE farmerid=%s",
-                    (name, phone, email, filename, userid)
-                )
-            else:
-                cursor.execute(
-                    "UPDATE farmers SET name=%s, phone=%s, email=%s WHERE farmerid=%s",
-                    (name, phone, email, userid)
-                )
+            cursor.execute(
+                "SELECT farmer_id, profile_image FROM farmers WHERE farmer_id = %s",
+                (userid,)
+            )
+            user_row = cursor.fetchone()
+            table = "farmers"
+            id_col = "farmer_id"
         elif role == "salesman":
-            if filename:
-                cursor.execute(
-                    "UPDATE salesmen SET name=%s, phone=%s, email=%s, profileimage=%s WHERE salesmanid=%s",
-                    (name, phone, email, filename, userid)
-                )
-            else:
-                cursor.execute(
-                    "UPDATE salesmen SET name=%s, phone=%s, email=%s WHERE salesmanid=%s",
-                    (name, phone, email, userid)
-                )
+            cursor.execute(
+                "SELECT salesman_id, profile_image FROM salesmen WHERE salesman_id = %s",
+                (userid,)
+            )
+            user_row = cursor.fetchone()
+            table = "salesmen"
+            id_col = "salesman_id"
         else:
             return jsonify({"message": "Invalid role"}), 400
 
+        if not user_row:
+            return jsonify({"message": f"{role.capitalize()} not found"}), 404
+
+        old_filename = user_row.get("profile_image")
+        filename = old_filename
+
+        if remove_image:
+            if old_filename:
+                old_path = os.path.join(app.config["UPLOAD_FOLDER"], old_filename)
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+            filename = None
+
+        if image and image.filename:
+            if not allowed_file(image.filename):
+                return jsonify({"message": "Only png, jpg, jpeg, webp files allowed"}), 400
+
+            ext = image.filename.rsplit(".", 1)[1].lower()
+            filename = secure_filename(f"{uuid.uuid4().hex}.{ext}")
+            image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+            if old_filename and old_filename != filename:
+                old_path = os.path.join(app.config["UPLOAD_FOLDER"], old_filename)
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+
+        update_cursor = conn.cursor()
+        update_cursor.execute(
+            f"""
+            UPDATE {table}
+            SET name = %s, phone = %s, email = %s, profile_image = %s
+            WHERE {id_col} = %s
+            """,
+            (name, phone, email, filename, userid)
+        )
+
         conn.commit()
-        return jsonify({"message": "Profile updated successfully", "filename": filename}), 200
+
+        return jsonify({
+            "message": "Profile updated successfully",
+            "filename": filename or ""
+        }), 200
 
     except Exception as e:
         if conn:
@@ -801,22 +974,13 @@ def update_profile():
         return jsonify({"message": str(e)}), 500
 
     finally:
-        close_resources(cursor, conn)
-
-def close_resources(cursor=None, conn=None):
-    try:
+        if update_cursor:
+            update_cursor.close()
         if cursor:
             cursor.close()
-    except:
-        pass
-
-    try:
         if conn:
             conn.close()
-    except:
-        pass
-
-
+            
 # if __name__ == "__main__":
 #     app.run(debug=True)
 
