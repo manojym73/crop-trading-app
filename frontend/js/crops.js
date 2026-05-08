@@ -84,30 +84,6 @@ async function loadCrops() {
   }
 }
 
-// async function searchCrops() {
-//   const cropName = document.getElementById("searchCrop")?.value?.toLowerCase().trim() || "";
-//   const location = document.getElementById("searchLocation")?.value?.toLowerCase().trim() || "";
-//   const container = document.getElementById("crop-list");
-//   if (!container) return;
-
-//   try {
-//     const res = await fetch(`${API}/crops`);
-//     const data = await res.json();
-
-//     if (!res.ok) throw new Error(data.message || "Failed to search crops");
-
-//     const filtered = (data.crops || []).filter((crop) => {
-//       const cropMatch = (crop.crop_name || "").toLowerCase().includes(cropName);
-//       const locationMatch = (crop.location || "").toLowerCase().includes(location);
-//       return cropMatch && locationMatch;
-//     });
-
-//     renderCrops(filtered);
-//   } catch (err) {
-//     console.error("Search crops error:", err);
-//     container.innerHTML = `<p class="text-danger text-center">${err.message || "Failed to search crops"}</p>`;
-//   }
-// }
 function searchCrops() {
   const cropName = document.getElementById("searchCrop")?.value?.toLowerCase().trim() || "";
   const location = document.getElementById("searchLocation")?.value?.toLowerCase().trim() || "";
