@@ -1,3 +1,4 @@
+# Crop Trading API - Flask Backend
 import os
 import uuid
 from flask import Flask, request, jsonify, send_from_directory
@@ -10,17 +11,7 @@ app = Flask(__name__)
 CORS(app)
 
 
-# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
-# ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
-
-# app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
-# os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-# def allowed_file(filename):
-#     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
+# Configuration for file uploads
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
@@ -28,8 +19,11 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Helper function to check allowed file extensions
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Helper function to close database resources
 def close_resources(cursor=None, conn=None):
     try:
         if cursor:
@@ -196,6 +190,8 @@ def login():
     except Exception as e:
         return jsonify({"message": str(e)}), 500
 
+# ---------------------------
+
 @app.route("/add_crop", methods=["POST"])
 def add_crop():
     conn = None
@@ -243,7 +239,7 @@ def add_crop():
         if conn:
             conn.close()
 
-
+# ---------------------------
 @app.route("/crops", methods=["GET"])
 def get_crops():
     conn = None
@@ -422,7 +418,7 @@ def get_salesman_orders(salesman_id):
         if conn:
             conn.close()
 
-
+# ---------------------------
 @app.route("/farmer_orders/<int:farmer_id>", methods=["GET"])
 def get_farmer_orders(farmer_id):
     conn = None
