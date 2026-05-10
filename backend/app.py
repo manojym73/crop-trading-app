@@ -418,7 +418,7 @@ def get_salesman_orders(salesman_id):
         if conn:
             conn.close()
 
-# ---------------------------
+# ---------------------------   
 @app.route("/farmer_orders/<int:farmer_id>", methods=["GET"])
 def get_farmer_orders(farmer_id):
     conn = None

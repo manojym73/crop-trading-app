@@ -38,7 +38,7 @@ a {
 }
 
 .navbar-glass {
-  background: rgba(25, 135, 84, 0.78) !important;
+  background: rgba(2, 108, 58, 0.78) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -653,6 +653,33 @@ body{
   background:linear-gradient(135deg,#198754,#20c997) !important;
 } 
 
+/* navbar crop trading */
+/* Container for the logo text to handle spacing */
+.logo-text {
+    font-size: 2.0rem; /* Adjust size as needed */
+    line-height: .8;
+    vertical-align: middle;
+    margin-left: 10px; /* Space between image and text */
+}
+
+/* Style for the word "Crop" (White) */
+.logo-crop {
+    color: #ffffffff; 
+    font-weight: 700; /* Bold */
+}
+
+/* Style for the word "Trading" (Light Green) */
+.logo-trading {
+    color: #91da01; /* A "YellowGreen" shade similar to the image */
+    font-weight: 700; /* Slightly lighter weight or match 700 if preferred */
+}
+
+/* Optional: Set the background color for the navbar/logo area */
+/* This depends on where you want the green background. 
+   If it's the whole navbar, target .navbar or .navbar-brand instead. */
+.navbar {
+    background-color: #2e8b57; /* A SeaGreen shade for the background */
+}
 
  /* our team section */
  .navbar .navbar-toggler {
