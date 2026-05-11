@@ -24,11 +24,11 @@ function getCropCard(crop) {
           <div class="crop-overlay"></div>
         </div>
         <div class="card-body d-flex flex-column">
-          <h5 class="card-title fw-bold mb-2">${crop.crop_name || "Crop"}</h5>
-          <p class="card-text mb-1"><b>Farmer:</b> ${crop.farmer_name || "N/A"}</p>
-          <p class="card-text mb-1"><b>Price:</b> ₹${price}/kg</p>
-          <p class="card-text mb-1"><b>Available:</b> ${quantity} kg</p>
-          <p class="card-text mb-3"><b>Location:</b> ${crop.location || "N/A"}</p>
+          <h5 class="card-title fw-bold mb-2">🌾 ${crop.crop_name || "Crop"}</h5>
+          <p class="card-text mb-1"><b>👨‍🌾 Farmer: </b>${crop.farmer_name || "N/A"}</p>
+          <p class="card-text mb-1"><b>💰 Price: </b>₹${price}/kg</p>
+          <p class="card-text mb-1"><b>📦 Available: </b>${quantity} kg</p>
+          <p class="card-text mb-3"><b>📍 Location: </b>${crop.location || "N/A"}</p>
 
           <input
             id="qty-${crop.crop_id}"
@@ -282,10 +282,10 @@ async function loadMyCrops() {
             onerror="this.src='https://via.placeholder.com/600x350?text=No+Image'"
           />
           <div class="card-body d-flex flex-column">
-            <h5 class="fw-bold">${crop.crop_name || "Crop"}</h5>
-            <p class="mb-1"><b>Quantity:</b> ${crop.quantity || 0} kg</p>
-            <p class="mb-1"><b>Price:</b> ₹${crop.price || 0}/kg</p>
-            <p class="mb-3"><b>Location:</b> ${crop.location || "N/A"}</p>
+            <h5 class="fw-bold">🌾${crop.crop_name || "Crop"}</h5>
+            <p class="mb-1"><b>📦 Quantity:</b> ${crop.quantity || 0} kg</p>
+            <p class="mb-1"><b>💰 Price:</b> ₹${crop.price || 0}/kg</p>
+            <p class="mb-3"><b>📍   Location:</b> ${crop.location || "N/A"}</p>
 
             <div class="d-flex gap-2 mt-auto">
                 <button
