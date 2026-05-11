@@ -23,11 +23,19 @@ async function loadFarmerOrders() {
   if (!container) return;
 
   if (!farmerId) {
-    container.innerHTML = `<p class="text-center text-danger">Farmer not logged in</p>`;
+    container.innerHTML = `
+      <div class="col-12">
+        <p class="text-center text-danger">Farmer not logged in</p>
+      </div>
+    `;
     return;
   }
 
-  container.innerHTML = `<p class="text-center text-muted">Loading orders...</p>`;
+  container.innerHTML = `
+    <div class="col-12">
+      <p class="text-center text-muted">Loading orders...</p>
+    </div>
+  `;
 
   try {
     const res = await fetch(`${API}/orders`);
@@ -46,47 +54,75 @@ async function loadFarmerOrders() {
 
     const allOrders = Array.isArray(data.orders) ? data.orders : [];
 
-    const farmerOrders = allOrders.filter(order =>
-      String(order.farmerid || order.farmer_id || order.farmerId) === String(farmerId)
-    );
+    const farmerOrders = allOrders.filter((order) => {
+      const orderFarmerId = order.farmerid || order.farmer_id || order.farmerId;
+      return String(orderFarmerId) === String(farmerId);
+    });
 
     console.log("ALL ORDERS:", allOrders);
     console.log("LOGGED FARMER ID:", farmerId);
     console.log("MATCHED FARMER ORDERS:", farmerOrders);
 
     if (farmerOrders.length === 0) {
-      container.innerHTML = `<p class="text-center text-muted">No orders yet</p>`;
+      container.innerHTML = `
+        <div class="col-12">
+          <p class="text-center text-muted">No orders yet</p>
+        </div>
+      `;
       return;
     }
 
-    container.innerHTML = farmerOrders.map(order => {
-      const cropName = order.cropname || order.crop_name || "Unknown Crop";
-      const buyerName = order.salesmanname || order.salesman_name || order.name || "N/A";
-      const buyerPhone = order.salesmanphone || order.salesman_phone || order.phone || "N/A";
-     
-      const quantity = Number(order.quantity || 0);
+    container.innerHTML = farmerOrders.map((order) => {
+      const cropName = "🌾 " + (order.cropname || order.crop_name || order.cropName || "Unknown Crop");
+      const buyerName = order.salesmanname || order.salesman_name || order.salesmanName || order.name || "N/A";
+      const buyerPhone =  (order.salesmanphone || order.salesman_phone || order.salesmanPhone || order.phone || "N/A");
+      const quantity = "📦 " + Number(order.quantity || 0);
       const status = String(order.status || "pending").toLowerCase();
-      const orderId = order.orderid || order.order_id;
+      const orderId = order.orderid || order.order_id || order.id;
+
+      let statusHtml = "";
+      if (status === "accepted" || status === "approved") {
+        statusHtml = `<span class="badge bg-success px-3 py-2 rounded-pill">Accepted</span>`;
+      } else if (status === "rejected") {
+        statusHtml = `<span class="badge bg-danger px-3 py-2 rounded-pill">Rejected</span>`;
+      } else {
+        statusHtml = `
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <button class="btn btn-success btn-sm px-3"
+              onclick="updateOrderStatus(${orderId}, 'accepted')">
+              Accept
+            </button>
+            <button class="btn btn-danger btn-sm px-3"
+              onclick="updateOrderStatus(${orderId}, 'rejected')">
+              Reject
+            </button>
+          </div>
+        `;
+      }
 
       return `
-        <div class="col-md-4">
-          <div class="card p-3 shadow-sm h-100">
-            <h5>${cropName}</h5>
-            <p><b>Buyer:</b> ${buyerName}</p>
-            <p><b>Phone:</b> ${buyerPhone}</p>
-            
-            <p><b>Quantity:</b> ${quantity} kg</p>
-            <div class="mt-2">
-              ${
-                status === "accepted" || status === "approved"
-                  ? `<span class="badge bg-success">Accepted</span>`
-                  : status === "rejected"
-                  ? `<span class="badge bg-danger">Rejected</span>`
-                  : `
-                    <button class="btn btn-success btn-sm me-2" onclick="updateOrderStatus(${orderId}, 'accepted')">Accept</button>
-                    <button class="btn btn-danger btn-sm" onclick="updateOrderStatus(${orderId}, 'rejected')">Reject</button>
-                  `
-              }
+        <div class="col-md-6 col-lg-4">
+          <div class="card received-order-card h-100 border-0 shadow-sm">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
+                <div>
+                  <h5 class="card-title fw-bold mb-1">${cropName}</h5>
+                  <p class="mb-0 text-muted small">Incoming order request</p>
+                </div>
+                <span class="badge bg-light text-dark rounded-pill px-3 py-2">
+                  ${quantity} kg
+                </span>
+              </div>
+
+              <div class="mb-3">
+                <p class="mb-2"><strong>👩🏻‍💼 Buyer:</strong> ${buyerName}</p>
+                <p class="mb-2"><strong>📞 Phone:</strong> ${buyerPhone}</p>
+                <p class="mb-0"><strong>📌 Status:</strong> ${status.charAt(0).toUpperCase() + status.slice(1)}</p>
+              </div>
+
+              <div class="mt-3">
+                ${statusHtml}
+              </div>
             </div>
           </div>
         </div>
@@ -95,7 +131,11 @@ async function loadFarmerOrders() {
 
   } catch (err) {
     console.error("Farmer orders error:", err);
-    container.innerHTML = `<p class="text-center text-danger">${err.message}</p>`;
+    container.innerHTML = `
+      <div class="col-12">
+        <p class="text-center text-danger">${err.message}</p>
+      </div>
+    `;
   }
 }
 

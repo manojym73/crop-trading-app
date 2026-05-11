@@ -1784,7 +1784,7 @@ body {
 }
 
 /* =========================
-   22. ORDERS PAGE CARDS
+   22. salesman ORDERS PAGE CARDS
 ========================= */
 /* =========================
    ORDERS PAGE DARK MODE FIX
@@ -1817,7 +1817,7 @@ body {
 [data-theme="dark"] .order-card h2,
 [data-theme="dark"] .order-card h3,
 [data-theme="dark"] .order-card h4,
-[data-theme="dark"] .order-card h5,
+/* [data-theme="dark"] .order-card h5, */
 [data-theme="dark"] .order-card h6,
 [data-theme="dark"] .order-card p,
 [data-theme="dark"] .order-card span,
@@ -1828,6 +1828,11 @@ body {
 [data-theme="dark"] .order-card .card-title,
 [data-theme="dark"] .order-card .card-text {
   color: #ffffff !important;
+}
+
+[data-theme="dark"] .order-card h5{
+  color: #f4ad29 !important;
+  font-weight: 1000;
 }
 
 /* Softer secondary text */
@@ -1883,4 +1888,47 @@ body {
   background: rgba(255, 255, 255, 0.06) !important;
   color: #ffffff !important;
   border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+
+/* =========================
+   22. received  ORDERS PAGE CARDS
+========================= */
+.received-order-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 24px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.received-order-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.16);
+}
+
+[data-theme="dark"] .received-order-card {
+  background: rgba(13, 22, 36, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+}
+
+[data-theme="dark"] .received-order-card,
+[data-theme="dark"] .received-order-card h5,
+[data-theme="dark"] .received-order-card p,
+[data-theme="dark"] .received-order-card strong,
+/* [data-theme="dark"] .received-order-card .card-title, */
+[data-theme="dark"] .received-order-card .card-body {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .received-order-card .card-title{
+  color: #f4ad29 !important;
+}
+
+[data-theme="dark"] .received-order-card .text-muted {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+[data-theme="dark"] .received-order-card .badge.bg-light {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
 }
