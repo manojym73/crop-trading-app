@@ -60,93 +60,6 @@ async function loadOrders() {
   }
 }
 
-// function loadSalesmanOrders() {
-//   const salesmanId = localStorage.getItem("salesmanid");
-//   const container = document.getElementById("orders-list");
-
-//   if (!container) return;
-
-//   if (!salesmanId) {
-//     alert("Please login as Salesman.");
-//     window.location.href = "login.html";
-//     return;
-//   }
-
-//   container.innerHTML = `<p class="text-center text-muted">Loading orders...</p>`;
-
-//   fetch(`${API}/salesman_orders/${salesmanId}`)
-//     .then(async (res) => {
-//       const data = await parseResponse(res);
-//       if (!res.ok) throw new Error(data.message || "Failed to load orders");
-//       return data;
-//     })
-//     .then((data) => {
-//       const orders = Array.isArray(data.orders) ? data.orders : [];
-
-//       if (orders.length === 0) {
-//         container.innerHTML = `<p class="text-center text-muted">No orders yet</p>`;
-//         return;
-//       }
-
-//       const html = orders.map((order) => {
-//         const orderId = order.order_id ?? order.orderid;
-//         const cropName = order.crop_name ?? order.cropname ?? "Unknown Crop";
-//         const farmerName = order.farmer_name ?? order.farmername ?? "N/A";
-//         const farmerPhone = order.farmer_phone ?? order.farmerphone ?? "N/A";
-//         const quantity = Number(order.quantity || 0);
-//         const price = Number(order.price || 0);
-//         const status = String(order.status || "").toLowerCase();
-
-//         let statusBadge = `<span class="badge bg-warning text-dark">Pending</span>`;
-
-//         if (status === "accepted" || status === "approved") {
-//           statusBadge = `<span class="badge bg-success">Accepted</span>`;
-//         } else if (status === "rejected") {
-//           statusBadge = `<span class="badge bg-danger">Rejected</span>`;
-//         }
-
-//         return `
-//           <div class="col-md-4">
-//             <div class="card p-3 shadow-sm h-100 border-0">
-//               <h5>${cropName}</h5>
-//               <p>👨‍🌾 <b>Farmer:</b> ${farmerName}</p>
-//               <p>📦 <b>Quantity:</b> ${quantity} kg</p>
-//               <p>💰 <b>Price:</b> ₹${price}/kg</p>
-//               <p>📌 <b>Status:</b> ${statusBadge}</p>
-
-//               ${
-//                 status === "accepted" || status === "approved"
-//                   ? `<p>📞 <b>Farmer Phone:</b> ${farmerPhone}</p>`
-//                   : ""
-//               }
-
-//               ${
-//                 status === "pending"
-//                   ? `
-//                     <div class="mt-2">
-//                       <button class="btn btn-success btn-sm me-2"
-//                         onclick="openUpdateOrderModal(${orderId}, '${cropName}', ${quantity})">
-//                         Update
-//                       </button>
-//                       <button class="btn btn-danger btn-sm" onclick="deleteOrder(${orderId})">
-//                         Delete
-//                       </button>
-//                     </div>
-//                   `
-//                   : ""
-//               }
-//             </div>
-//           </div>
-//         `;
-//       }).join("");
-
-//       container.innerHTML = html;
-//     })
-//     .catch((err) => {
-//       console.error("Salesman orders error:", err);
-//       container.innerHTML = `<p class="text-center text-danger">Failed to load orders</p>`;
-//     });
-// }
 
 function loadSalesmanOrders() {
   const salesmanId = localStorage.getItem("salesmanid");
@@ -198,7 +111,7 @@ function loadSalesmanOrders() {
           <div class="col-md-4">
             <div class="card p-3 shadow-sm h-100 border-0 order-card">
               <div class="card-body p-0"> 
-                <h5 class="mb-3">${cropName}</h5>
+                <h5 class="mb-3">🌾 ${cropName}</h5>
                 <p class="mb-2">👨‍🌾 <b>Farmer:</b> ${farmerName}</p>
                 <p class="mb-2">📦 <b>Quantity:</b> ${quantity} kg</p>
                 <p class="mb-2">💰 <b>Price:</b> ₹${price}/kg</p>

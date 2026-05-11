@@ -1831,12 +1831,14 @@ body {
 }
 
 [data-theme="dark"] .order-card h5{
-  color: #78e5ef !important;
+  color: #ccd3d3 !important;
   font-weight: 400;
 }
 
 [data-theme="dark"] .order-card p{
-  color: rgba(79, 196, 216, 0.72) !important;
+  /* color: rgba(79, 196, 216, 0.72) !important;
+  font-weight: 200; */
+  color: rgba(255, 255, 255, 0.72) !important;
   font-weight: 200;
 }
 
@@ -1926,7 +1928,7 @@ body {
 }
 
 [data-theme="dark"] .received-order-card .card-title{
-  color: #78e5ef !important;
+  color: #ccd3d3 !important;
   font-weight: 400;
 }
 
