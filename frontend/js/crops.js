@@ -85,7 +85,7 @@ async function loadCrops() {
 }
 
 function searchCrops() {
-  const cropName = document.getElementById("searchCrop")?.value?.toLowerCase().trim() || "";
+  const crop_name = document.getElementById("searchCrop")?.value?.toLowerCase().trim() || "";
   const location = document.getElementById("searchLocation")?.value?.toLowerCase().trim() || "";
   const minPrice = parseFloat(document.getElementById("minPrice")?.value) || 0;
   const maxPrice = parseFloat(document.getElementById("maxPrice")?.value) || Infinity;
@@ -102,7 +102,7 @@ function searchCrops() {
     })
     .then((data) => {
       let filtered = data.crops.filter((crop) => {
-        const cropMatch = (crop.cropname || "").toLowerCase().includes(cropName);
+        const cropMatch = (crop.crop_name || "").toLowerCase().includes(crop_name);
         const locationMatch = (crop.location || "").toLowerCase().includes(location);
         const price = Number(crop.price) || 0;
 

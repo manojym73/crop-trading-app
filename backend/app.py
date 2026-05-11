@@ -191,7 +191,8 @@ def login():
         return jsonify({"message": str(e)}), 500
 
 # ---------------------------
-
+# Add Crop
+# ---------------------------
 @app.route("/add_crop", methods=["POST"])
 def add_crop():
     conn = None
@@ -240,6 +241,8 @@ def add_crop():
             conn.close()
 
 # ---------------------------
+# Get Crops
+# ---------------------------
 @app.route("/crops", methods=["GET"])
 def get_crops():
     conn = None
@@ -276,7 +279,9 @@ def get_crops():
         if conn:
             conn.close()
 
-
+# ---------------------------
+# Place Order
+# ---------------------------
 @app.route("/place_order", methods=["POST"])
 def place_order():
     conn = None
@@ -333,7 +338,9 @@ def place_order():
         if conn:
             conn.close()
 
-
+# ---------------------------
+# Get Orders
+# ---------------------------
 @app.route("/orders", methods=["GET"])
 def get_orders():
     conn = None
@@ -377,7 +384,9 @@ def get_orders():
         if conn:
             conn.close()
 
-
+# ---------------------------
+# Get Salesman Orders
+# ---------------------------
 @app.route("/salesman_orders/<int:salesman_id>", methods=["GET"])
 def get_salesman_orders(salesman_id):
     conn = None
@@ -419,6 +428,8 @@ def get_salesman_orders(salesman_id):
             conn.close()
 
 # ---------------------------   
+#  Get Farmer Orders
+# ---------------------------
 @app.route("/farmer_orders/<int:farmer_id>", methods=["GET"])
 def get_farmer_orders(farmer_id):
     conn = None
@@ -459,6 +470,9 @@ def get_farmer_orders(farmer_id):
         if conn:
             conn.close()
 
+#  ---------------------------
+# Update Order Status
+# ---------------------------
 @app.route('/updateorderstatus', methods=['POST', 'OPTIONS'])
 def update_order_status():
     if request.method == 'OPTIONS':
@@ -545,7 +559,9 @@ def update_order_status():
         if conn:
             conn.close()
 
-
+# ---------------------------
+# Get Stats
+#   ---------------------------
 @app.route("/stats", methods=["GET"])
 def get_stats():
     conn = None
@@ -583,6 +599,7 @@ def get_stats():
 
 # ---------------------------
 # Update Crop
+# ---------------------------
 @app.route("/update_crop/<int:crop_id>", methods=["PUT"])
 def update_crop(crop_id):
     try:
@@ -618,6 +635,7 @@ def update_crop(crop_id):
 
 # ---------------------------
 # Delete Crop
+# ---------------------------
 @app.route("/delete_crop/<int:crop_id>", methods=["DELETE"])
 def delete_crop(crop_id):
     try:
@@ -742,6 +760,9 @@ def delete_salesman_order():
     except Exception as e:
         return jsonify({"message": str(e)}), 500
     
+# ---------------------------
+# Update Profile
+# ---------------------------
 @app.route("/updateprofile", methods=["POST"])
 def update_profile():
     conn = None
