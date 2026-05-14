@@ -2002,3 +2002,6 @@ body.dark-mode {
 .btn-login:focus {
     box-shadow: 0 0 0 3px var(--login-btn-shadow);
 }
+
+
+/* navbar css */

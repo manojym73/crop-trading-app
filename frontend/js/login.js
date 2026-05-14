@@ -21,6 +21,35 @@ function clearAuthStorage() {
   localStorage.removeItem("role");
 }
 
+// function toggleForm(event) {
+//   if (event) event.preventDefault();
+
+//   isLogin = !isLogin;
+
+//   const formTitle = getEl("form-title");
+//   const nameGroup = getEl("name-group");
+//   const phoneGroup = getEl("phone-group");
+//   const toggleText = getEl("toggle-text");
+//   const roleGroup = getEl("role-group");
+
+//   if (formTitle) formTitle.innerText = isLogin ? "Welcome Back" : "Create Account";
+//   if (nameGroup) nameGroup.style.display = isLogin ? "none" : "block";
+//   if (phoneGroup) phoneGroup.style.display = isLogin ? "none" : "block";
+//   if (roleGroup) roleGroup.style.display = isLogin ? "none" : "block";
+
+//   if (toggleText) {
+//     toggleText.innerHTML = isLogin
+//       ? `Don't have an account? <a href="#" onclick="toggleForm(event)">Sign Up</a>`
+//       : `Already have an account? <a href="#" onclick="toggleForm(event)">Login</a>`;
+//   }
+// }
+
+let isLogin = true; // Start in login mode
+
+function getEl(id) {
+  return document.getElementById(id);
+}
+
 function toggleForm(event) {
   if (event) event.preventDefault();
 
@@ -31,18 +60,61 @@ function toggleForm(event) {
   const phoneGroup = getEl("phone-group");
   const toggleText = getEl("toggle-text");
   const roleGroup = getEl("role-group");
+  const submitBtn = getEl("submit-btn"); // Optional: change button text too
 
-  if (formTitle) formTitle.innerText = isLogin ? "Welcome Back" : "Create Account";
+  // Update form title
+  if (formTitle) {
+    formTitle.innerText = isLogin ? "Welcome Back" : "Create Account";
+  }
+
+  // Toggle field visibility
   if (nameGroup) nameGroup.style.display = isLogin ? "none" : "block";
   if (phoneGroup) phoneGroup.style.display = isLogin ? "none" : "block";
   if (roleGroup) roleGroup.style.display = isLogin ? "none" : "block";
 
+  // Update toggle link text
   if (toggleText) {
     toggleText.innerHTML = isLogin
-      ? `Don't have an account? <a href="#" onclick="toggleForm(event)">Sign Up</a>`
-      : `Already have an account? <a href="#" onclick="toggleForm(event)">Login</a>`;
+      ? `Don't have an account? <a href="#" class="toggle-link" onclick="toggleForm(event)">Sign Up</a>`
+      : `Already have an account? <a href="#" class="toggle-link" onclick="toggleForm(event)">Login</a>`;
+  }
+
+  // Optional: Update submit button text
+  if (submitBtn) {
+    submitBtn.innerText = isLogin ? "Login" : "Sign Up";
+  }
+
+  // Optional: Add smooth transition by fading elements
+  if (nameGroup || phoneGroup || roleGroup) {
+    const groups = [nameGroup, phoneGroup, roleGroup].filter(Boolean);
+    groups.forEach(group => {
+      group.style.opacity = "0";
+      setTimeout(() => {
+        group.style.display = isLogin ? "none" : "block";
+        setTimeout(() => {
+          group.style.opacity = "1";
+        }, 50);
+      }, 300);
+    });
   }
 }
+
+// Add CSS for fade transition
+const style = document.createElement("style");
+style.textContent = `
+  .form-group {
+    transition: opacity 0.3s ease;
+  }
+  .toggle-link {
+    color: var(--btn-bg);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .toggle-link:hover {
+    text-decoration: underline;
+  }
+`;
+document.head.appendChild(style);
 
 function validateEmail(email) {
   return /\S+@\S+\.\S+/.test(email);
