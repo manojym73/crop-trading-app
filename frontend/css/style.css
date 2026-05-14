@@ -1945,3 +1945,60 @@ body {
   background: rgba(255, 255, 255, 0.12) !important;
   color: rgba(255, 255, 255, 0.72) !important;
 }
+
+/* login button styles */
+/* Color Palette Variables - Green Theme Match */
+:root {
+    /* Light Theme Defaults */
+    --login-btn-bg: #10b981;       /* Emerald 500 - Vibrant Green */
+    --login-btn-hover: #059669;    /* Emerald 600 - Darker for hover */
+    --login-btn-text: #ffffff;
+    --login-btn-shadow: rgba(16, 185, 129, 0.3); /* Green shadow tint */
+}
+
+/* Dark Theme Overrides */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Slightly brighter green for dark mode to pop against the dark background */
+        --login-btn-bg: #34d399;   /* Emerald 400 */
+        --login-btn-hover: #10b981; /* Emerald 500 */
+        --login-btn-text: #ffffff;
+        --login-btn-shadow: rgba(52, 211, 153, 0.4);
+    }
+}
+
+/* If you use a class-based toggle (.dark-mode) */
+body.dark-mode {
+    --login-btn-bg: #34d399;
+    --login-btn-hover: #10b981;
+    --login-btn-shadow: rgba(52, 211, 153, 0.4);
+}
+
+/* Button Styling (Unchanged structure, updated variables) */
+.btn-login {
+    background-color: var(--login-btn-bg);
+    color: var(--login-btn-text);
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px var(--login-btn-shadow);
+    outline: none;
+}
+
+.btn-login:hover {
+    background-color: var(--login-btn-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px var(--login-btn-shadow);
+}
+
+.btn-login:active {
+    transform: translateY(0);
+}
+
+.btn-login:focus {
+    box-shadow: 0 0 0 3px var(--login-btn-shadow);
+}
