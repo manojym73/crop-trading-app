@@ -44,11 +44,11 @@ function clearAuthStorage() {
 //   }
 // }
 
-let isLogin = true; // Start in login mode
+// let isLogin = true; // Start in login mode
 
-function getEl(id) {
-  return document.getElementById(id);
-}
+// function getEl(id) {
+//   return document.getElementById(id);
+// }
 
 function toggleForm(event) {
   if (event) event.preventDefault();

@@ -7,8 +7,24 @@ from werkzeug.utils import secure_filename
 from database import get_connection
 from werkzeug.security import generate_password_hash, check_password_hash
 
+
+# app = Flask(__name__)
+# CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:5501", "http://localhost:5501"]}})
+
+# app = Flask(__name__)
+# CORS(app)
+
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+
 app = Flask(__name__)
-CORS(app)
+
+CORS(
+    app,
+    resources={r"/*": {"origins": ["http://127.0.0.1:5501", "http://localhost:5501"]}},
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+)
 
 
 # Configuration for file uploads
@@ -858,8 +874,11 @@ def update_profile():
         if conn:
             conn.close()
             
-if __name__ == "__main__":
-    app.run(debug=True)
+# if __name__ == "__main__":
+#     app.run(debug=True)
 
 # if __name__ == '__main__':
 #     app.run(debug=True, port=5001)
+
+if __name__ == "__main__":
+    app.run(debug=True, host="127.0.0.1", port=5001)
